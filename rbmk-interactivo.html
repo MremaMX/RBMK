@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador RBMK-1000 Interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#fff;color:#1a1a1a;min-height:100vh}
+header{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);color:#fff;padding:16px 32px;display:flex;align-items:center;gap:16px}
+.ricon{width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,#ff6b35,#c0392b);display:flex;align-items:center;justify-content:center;font-size:24px;animation:glow 2s ease-in-out infinite;flex-shrink:0}
+@keyframes glow{0%,100%{box-shadow:0 0 16px rgba(255,107,53,.5)}50%{box-shadow:0 0 36px rgba(255,107,53,.9)}}
+header h1{font-size:24px;font-weight:700}
+header p{font-size:12px;opacity:.6;margin-top:2px}
+.badge{margin-left:auto;background:rgba(255,107,53,.2);border:1px solid rgba(255,107,53,.4);color:#ff6b35;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
+.tabs{background:#fff;border-bottom:2px solid #e0e0e0;display:flex;padding:0 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-x:auto}
+.tab{padding:12px 20px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#666;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
+.tab:hover{color:#e63946}
+.tab.active{color:#e63946;border-bottom-color:#e63946}
+.panel{display:none;padding:16px 20px}
+.panel.active{display:block}
+/* CORE */
+#core-wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+#coreCanvas{border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.side-panel{flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px}
+.card{background:#f8f9fa;border-radius:8px;padding:14px;border:1px solid #e0e0e0}
+.card h3{font-size:13px;font-weight:600;color:#333;margin-bottom:8px}
+.stat{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid #eee}
+.stat:last-child{border:none}
+.stat-val{font-weight:600;color:#e63946}
+/* CONTROLS */
+.ctrl-bar{background:#f8f9fa;border-top:1px solid #e0e0e0;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;bottom:0;z-index:99}
+.ctrl-group{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#444}
+input[type=range]{width:140px;accent-color:#e63946}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;transition:all .15s}
+.btn-scram{background:#c0392b;color:#fff}
+.btn-scram:hover{background:#e74c3c}
+.btn-chain{background:#e67e22;color:#fff}
+.btn-chain:hover{background:#f39c12}
+.btn-cherno{background:#8e44ad;color:#fff}
+.btn-cherno:hover{background:#9b59b6}
+#reactor-status{font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+#reactor-status.warn{background:#fff3cd;color:#856404;border-color:#ffeeba}
+#reactor-status.danger{background:#f8d7da;color:#721c24;border-color:#f5c6cb}
+/* SCRAM overlay */
+#scram-overlay{display:none;position:fixed;inset:0;background:rgba(192,57,43,.0);z-index:200;pointer-events:none}
+#scram-overlay.active{display:block;animation:flash 0.4s ease}
+@keyframes flash{0%{background:rgba(192,57,43,.0)}30%{background:rgba(192,57,43,.7)}100%{background:rgba(192,57,43,.0)}}
+#scram-msg{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#c0392b;color:#fff;padding:20px 36px;border-radius:10px;font-size:18px;font-weight:700;z-index:201;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+/* CHERNOBYL overlay */
+#cherno-overlay{display:none;position:fixed;inset:0;background:rgba(255,100,0,.0);z-index:200;pointer-events:none}
+#cherno-overlay.active{display:block;animation:cflash 0.8s ease forwards}
+@keyframes cflash{0%{background:rgba(255,100,0,.0)}20%{background:rgba(255,255,255,.9)}60%{background:rgba(255,100,0,.6)}100%{background:rgba(255,100,0,.0)}}
+#narr{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:202;text-align:center;max-width:600px}
+/* CIRCUIT */
+#circuitCanvas{border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+/* PHYSICS/FUEL tabs */
+.info-section{max-width:720px}
+.info-section h2{font-size:18px;font-weight:700;margin-bottom:10px;color:#1a1a2e}
+.info-section p{font-size:14px;line-height:1.7;color:#444;margin-bottom:12px}
+.info-section ul{font-size:14px;line-height:1.9;color:#444;padding-left:20px}
+#fuelCanvas,#ctrlCanvas,#physCanvas{border-radius:8px;margin-top:12px;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+/* CHERNOBYL timeline */
+.timeline{display:flex;gap:0;overflow-x:auto;padding:20px 0;position:relative;margin-bottom:16px}
+.timeline::before{content:'';position:absolute;left:0;right:0;top:44px;height:3px;background:linear-gradient(90deg,#27ae60,#f39c12,#e74c3c,#8e44ad)}
+.tev{display:flex;flex-direction:column;align-items:center;min-width:120px;cursor:pointer;padding:0 6px}
+.tev-dot{width:14px;height:14px;border-radius:50%;background:#e74c3c;border:3px solid #fff;box-shadow:0 0 0 2px #e74c3c;margin-bottom:8px;transition:transform .2s}
+.tev:hover .tev-dot{transform:scale(1.4)}
+.tev-dot.green{background:#27ae60;box-shadow:0 0 0 2px #27ae60}
+.tev-dot.orange{background:#f39c12;box-shadow:0 0 0 2px #f39c12}
+.tev-time{font-size:10px;font-weight:700;color:#666}
+.tev-label{font-size:10px;color:#444;text-align:center;margin-top:4px;line-height:1.3}
+.tev-desc{display:none;background:#1a1a2e;color:#fff;border-radius:8px;padding:16px;font-size:13px;line-height:1.6;margin-top:8px;max-width:600px}
+.tev-desc.visible{display:block}
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.leg{display:flex;align-items:center;gap:6px;font-size:11px;color:#555}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="ricon">⚛</div>
+  <div>
+    <h1>Simulador RBMK-1000</h1>
+    <p>Reactor de Canal con Moderador de Grafito — Chernóbil, 1986</p>
+  </div>
+  <div class="badge" id="reactor-status">OPERANDO NORMAL</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" onclick="showTab('nucleo',this)">⚛ Núcleo</button>
+  <button class="tab" onclick="showTab('circuito',this)">🔄 Circuito</button>
+  <button class="tab" onclick="showTab('combustible',this)">🔥 Combustible</button>
+  <button class="tab" onclick="showTab('control',this)">🎛 Control</button>
+  <button class="tab" onclick="showTab('chernobyl',this)">☢ Chernóbil</button>
+  <button class="tab" onclick="showTab('fisica',this)">⚡ Física</button>
+</nav>
+
+<!-- NÚCLEO -->
+<div id="tab-nucleo" class="panel active">
+  <div id="core-wrap">
+    <canvas id="coreCanvas"></canvas>
+    <div class="side-panel">
+      <div class="card">
+        <h3>📊 Estado del Reactor</h3>
+        <div class="stat"><span>Potencia térmica</span><span class="stat-val" id="s-power">3200 MWt</span></div>
+        <div class="stat"><span>Temperatura núcleo</span><span class="stat-val" id="s-temp">285 °C</span></div>
+        <div class="stat"><span>Flujo neutrónicos</span><span class="stat-val" id="s-flux">2.4×10¹³</span></div>
+        <div class="stat"><span>Barras control insertadas</span><span class="stat-val" id="s-rods">211 / 211</span></div>
+        <div class="stat"><span>Canales de combustible</span><span class="stat-val">1,693</span></div>
+        <div class="stat"><span>Moderador</span><span class="stat-val">Grafito</span></div>
+      </div>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:#ff6b35"></div>Canal combustible</div>
+        <div class="leg"><div class="leg-dot" style="background:#1a5276"></div>Barra de control</div>
+        <div class="leg"><div class="leg-dot" style="background:#aaa"></div>Medición flujo</div>
+        <div class="leg"><div class="leg-dot" style="background:#4a4"></div>Grafito</div>
+      </div>
+      <div class="card">
+        <h3>💡 Interacción</h3>
+        <p style="font-size:12px;color:#666;line-height:1.6">
+          • Haz <b>clic</b> en un canal para iniciar onda neutrónica<br>
+          • El mapa de calor se actualiza en tiempo real<br>
+          • Usa el slider de potencia para cambiar la temperatura
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CIRCUITO -->
+<div id="tab-circuito" class="panel">
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+    <canvas id="circuitCanvas" width="700" height="480"></canvas>
+    <div style="flex:1;min-width:200px">
+      <div class="card">
+        <h3>🔄 Circuito de Refrigeración</h3>
+        <div class="stat"><span>Caudal total</span><span class="stat-val">45,000 t/h</span></div>
+        <div class="stat"><span>Presión vapor</span><span class="stat-val">6.5 MPa</span></div>
+        <div class="stat"><span>Temp. entrada núcleo</span><span class="stat-val">270 °C</span></div>
+        <div class="stat"><span>Temp. salida núcleo</span><span class="stat-val">284 °C</span></div>
+        <div class="stat"><span>Circuitos</span><span class="stat-val">2 (independientes)</span></div>
+      </div>
+      <div class="card" style="margin-top:8px">
+        <h3>🔵 Leyenda partículas</h3>
+        <div class="leg" style="margin:4px 0"><div class="leg-dot" style="background:#3498db"></div>Agua refrigerante (fría)</div>
+        <div class="leg" style="margin:4px 0"><div class="leg-dot" style="background:#ecf0f1"></div>Vapor</div>
+        <div class="leg" style="margin:4px 0"><div class="leg-dot" style="background:#f39c12"></div>Mezcla agua/vapor</div>
+        <div class="leg" style="margin:4px 0"><div class="leg-dot" style="background:#ffe066"></div>Neutrones</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMBUSTIBLE -->
+<div id="tab-combustible" class="panel">
+  <div style="display:flex;gap:24px;flex-wrap:wrap">
+    <canvas id="fuelCanvas" width="360" height="360"></canvas>
+    <div class="info-section">
+      <h2>Elemento Combustible RBMK</h2>
+      <p>Cada canal del RBMK-1000 contiene <b>2 ensambles de 18 varillas de combustible</b> cada uno. Las pastillas de UO₂ sinterizado se apilan dentro de una vaina de aleación de circonio-nióbio.</p>
+      <ul>
+        <li>Combustible: UO₂ enriquecido al 2% en U-235</li>
+        <li>Vaina: aleación Zr-2.5%Nb (no reacciona con agua a presión normal)</li>
+        <li>Refrigerante: agua a presión (hervimiento en canal)</li>
+        <li>Temperatura centro pastilla: hasta 1800 °C</li>
+        <li>Temperatura vaina: ~310 °C máximo</li>
+        <li>Gap gas: mezcla He/Ar para transferencia de calor</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROL -->
+<div id="tab-control" class="panel">
+  <div style="display:flex;gap:24px;flex-wrap:wrap">
+    <canvas id="ctrlCanvas" width="340" height="420"></canvas>
+    <div class="info-section">
+      <h2>Barras de Control RBMK</h2>
+      <p>El RBMK-1000 tiene <b>211 barras de control</b> que se insertan desde arriba del reactor. Cada barra tiene una sección de absorbedor de B₄C (carburo de boro) y, en la punta inferior, un <b>desplazador de grafito</b> de 1.25 m.</p>
+      <p><b>⚠ Defecto Fatal — Efecto de Punta de Grafito:</b><br>
+      Al insertarse, el desplazador de grafito entra <i>primero</i> al canal, reemplazando el agua (que absorbe neutrones) con grafito (que los modera y aumenta la reactividad). Esto causa un <b>pico inicial de reactividad positiva</b> de ~2-3 segundos antes de que el B₄C comience a absorber neutrones.</p>
+      <p>Este defecto fue la causa directa de la catástrofe de Chernóbil: al presionar AZ-5, la potencia <i>aumentó</i> antes de caer.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CHERNÓBIL -->
+<div id="tab-chernobyl" class="panel">
+  <div class="info-section" style="max-width:900px">
+    <h2>☢ Cronología del Accidente — 26 de abril de 1986</h2>
+    <p style="margin-bottom:12px">Haz clic en cada evento para ver el detalle:</p>
+    <div class="timeline" id="timeline"></div>
+    <div id="tev-detail" class="tev-desc"></div>
+  </div>
+</div>
+
+<!-- FÍSICA -->
+<div id="tab-fisica" class="panel">
+  <div style="display:flex;gap:24px;flex-wrap:wrap">
+    <canvas id="physCanvas" width="480" height="380"></canvas>
+    <div class="info-section">
+      <h2>Fisión Nuclear en Cadena</h2>
+      <p>Un <b>neutrón térmico</b> (lento) impacta un núcleo de <b>U-235</b>. El núcleo se vuelve inestable (U-236 excitado) y se divide en dos fragmentos más pequeños (productos de fisión) liberando <b>2-3 neutrones rápidos</b> y ~200 MeV de energía.</p>
+      <p>En el RBMK, el <b>grafito</b> modera (frena) los neutrones rápidos a neutrones térmicos para que puedan causar más fisiones, manteniendo la <b>reacción en cadena</b> sostenida.</p>
+      <ul>
+        <li>Factor k (crítico): k = 1.000 — reactor estable</li>
+        <li>k &lt; 1 — reactor subcrítico (se apaga)</li>
+        <li>k &gt; 1 — reactor supercrítico (potencia sube)</li>
+        <li>En Chernóbil: k subió a ~1.10 → potencia x100 en ms</li>
+        <li>Energía por fisión: ~200 MeV = 3.2×10⁻¹¹ J</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl-bar">
+  <div class="ctrl-group">
+    ⚡ Potencia
+    <input type="range" id="powerSlider" min="0" max="120" value="100" oninput="setPower(this.value)">
+    <span id="powerVal" style="min-width:38px;font-weight:700;color:#e63946">100%</span>
+  </div>
+  <button class="btn btn-scram" onclick="doScram()">🔴 AZ-5 SCRAM</button>
+  <button class="btn btn-chain" onclick="doChain()">⚡ Reacción en Cadena</button>
+  <button class="btn btn-cherno" onclick="doChernobyl()">☢ Modo Chernóbil</button>
+</div>
+
+<!-- Overlays -->
+<div id="scram-overlay"></div>
+<div id="scram-msg"></div>
+<div id="cherno-overlay"></div>
+<div id="narr"></div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+const S = {
+  power: 1.0,       // 0..1.2
+  scramming: false,
+  chernobylMode: false,
+  chainWave: false
+};
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─── CORE CANVAS ─────────────────────────────────────────────────────────────
+const coreCanvas = document.getElementById('coreCanvas');
+const cctx = coreCanvas.getContext('2d');
+const SIZE = 640;
+const DPR = window.devicePixelRatio || 1;
+coreCanvas.width = SIZE * DPR;
+coreCanvas.height = SIZE * DPR;
+coreCanvas.style.width = SIZE + 'px';
+coreCanvas.style.height = SIZE + 'px';
+cctx.scale(DPR, DPR);
+
+// Build channel grid
+const COLS = 50, ROWS = 50;
+const CELL = SIZE / COLS;
+const CX = SIZE / 2, CY = SIZE / 2;
+const CORE_R = 22.5; // cells radius
+
+const channels = [];
+// Control rod positions: every ~4th in a pattern
+function isControlRod(col, row) {
+  return (col % 4 === 2 && row % 4 === 2);
+}
+function isMeasure(col, row) {
+  return (col % 8 === 0 && row % 8 === 0);
+}
+
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const dc = c - COLS/2 + 0.5, dr = r - ROWS/2 + 0.5;
+    const dist = Math.sqrt(dc*dc + dr*dr);
+    if (dist > CORE_R) continue;
+    const type = isMeasure(c,r) ? 'measure' : isControlRod(c,r) ? 'rod' : 'fuel';
+    channels.push({
+      c, r,
+      x: (c + 0.5) * CELL,
+      y: (r + 0.5) * CELL,
+      type,
+      temp: 0.3 + Math.random() * 0.4,
+      power: 0.5 + Math.random() * 0.5,
+      insertion: type === 'rod' ? 0.6 + Math.random() * 0.4 : 0,
+      wave: 0,
+      destroyed: false,
+      dist
+    });
+  }
+}
+
+// Count types
+const fuelCount = channels.filter(c => c.type === 'fuel').length;
+const rodCount  = channels.filter(c => c.type === 'rod').length;
+
+// Hover tooltip
+let hoveredCh = null;
+coreCanvas.addEventListener('mousemove', e => {
+  const rect = coreCanvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left), my = (e.clientY - rect.top);
+  hoveredCh = null;
+  for (const ch of channels) {
+    const dx = ch.x - mx, dy = ch.y - my;
+    if (dx*dx + dy*dy < (CELL*.45)**2) { hoveredCh = ch; break; }
+  }
+});
+
+// Click → neutron wave
+coreCanvas.addEventListener('click', e => {
+  const rect = coreCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let best = null, bd = 1e9;
+  for (const ch of channels) {
+    const dx = ch.x - mx, dy = ch.y - my, d = dx*dx + dy*dy;
+    if (d < bd) { bd = d; best = ch; }
+  }
+  if (best) startWave(best.x, best.y);
+});
+
+// Waves
+const waves = [];
+function startWave(x, y, big) {
+  waves.push({ x, y, r: 0, maxR: big ? SIZE : 200, alpha: 1, big: !!big });
+}
+
+// Color based on temperature
+function tempColor(t, destroyed) {
+  if (destroyed) return '#333';
+  t = Math.max(0, Math.min(1, t));
+  if (t < 0.33) {
+    const f = t / 0.33;
+    return `rgb(${Math.round(40+f*80)},${Math.round(100+f*80)},${Math.round(200-f*50)})`;
+  } else if (t < 0.66) {
+    const f = (t-0.33)/0.33;
+    return `rgb(${Math.round(120+f*135)},${Math.round(180-f*80)},${Math.round(150-f*130)})`;
+  } else {
+    const f = (t-0.66)/0.34;
+    return `rgb(${Math.round(255)},${Math.round(100-f*80)},${Math.round(20-f*20)})`;
+  }
+}
+
+let tick = 0;
+function drawCore() {
+  tick++;
+  const p = S.power;
+
+  // Update channel temps
+  for (const ch of channels) {
+    if (ch.destroyed) continue;
+    const target = ch.type === 'fuel' ? p * (0.5 + ch.power * 0.5) : 0.15 + p * 0.1;
+    ch.temp += (target - ch.temp) * 0.02;
+    ch.temp = Math.max(0, Math.min(S.chernobylMode ? 2 : 1, ch.temp));
+    if (ch.wave > 0) ch.wave -= 0.04;
+  }
+
+  // Clear
+  cctx.fillStyle = '#1a1a1a';
+  cctx.fillRect(0, 0, SIZE, SIZE);
+
+  // Graphite bg circle
+  cctx.beginPath();
+  cctx.arc(CX, CY, CORE_R * CELL, 0, Math.PI*2);
+  cctx.fillStyle = '#2d4a2d';
+  cctx.fill();
+
+  // Draw channels
+  for (const ch of channels) {
+    const rad = CELL * 0.38;
+    if (ch.destroyed) {
+      cctx.beginPath();
+      cctx.arc(ch.x, ch.y, rad, 0, Math.PI*2);
+      cctx.fillStyle = '#111';
+      cctx.fill();
+      continue;
+    }
+    if (ch.type === 'fuel') {
+      cctx.beginPath();
+      cctx.arc(ch.x, ch.y, rad, 0, Math.PI*2);
+      cctx.fillStyle = tempColor(ch.temp, false);
+      cctx.fill();
+    } else if (ch.type === 'rod') {
+      cctx.beginPath();
+      cctx.arc(ch.x, ch.y, rad, 0, Math.PI*2);
+      const g = Math.round(30 + ch.insertion * 60);
+      cctx.fillStyle = `rgb(15,30,${50+Math.round(ch.insertion*60)})`;
+      cctx.fill();
+      // insertion line
+      cctx.fillStyle = '#2196f3';
+      cctx.fillRect(ch.x - 1, ch.y - rad, 2, rad * 2 * ch.insertion);
+    } else {
+      cctx.beginPath();
+      cctx.arc(ch.x, ch.y, rad * 0.6, 0, Math.PI*2);
+      cctx.fillStyle = '#888';
+      cctx.fill();
+    }
+    // Wave glow
+    if (ch.wave > 0) {
+      cctx.beginPath();
+      cctx.arc(ch.x, ch.y, rad * (1 + ch.wave * 1.5), 0, Math.PI*2);
+      cctx.strokeStyle = `rgba(255,240,50,${ch.wave})`;
+      cctx.lineWidth = 2;
+      cctx.stroke();
+    }
+  }
+
+  // Ripple waves
+  for (let i = waves.length-1; i >= 0; i--) {
+    const w = waves[i];
+    w.r += 4 + p * 3;
+    w.alpha = 1 - w.r / w.maxR;
+    if (w.alpha <= 0) { waves.splice(i,1); continue; }
+    // Trigger channel waves
+    for (const ch of channels) {
+      if (ch.destroyed) continue;
+      const dx = ch.x - w.x, dy = ch.y - w.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (Math.abs(d - w.r) < 6) ch.wave = Math.min(1, ch.wave + 0.5);
+    }
+    cctx.beginPath();
+    cctx.arc(w.x, w.y, w.r, 0, Math.PI*2);
+    cctx.strokeStyle = `rgba(255,235,50,${w.alpha * 0.7})`;
+    cctx.lineWidth = 2;
+    cctx.stroke();
+  }
+
+  // Tooltip
+  if (hoveredCh && !hoveredCh.destroyed) {
+    const ch = hoveredCh;
+    const labels = { fuel: 'Combustible', rod: 'Barra control', measure: 'Medición flujo' };
+    const lines = [
+      labels[ch.type],
+      `Temp: ${Math.round(270 + ch.temp * 80)} °C`,
+      `Potencia: ${Math.round(ch.power * 100 * p)}%`,
+      ch.type === 'rod' ? `Inserción: ${Math.round(ch.insertion*100)}%` : `Estado: Activo`
+    ];
+    cctx.fillStyle = 'rgba(0,0,0,.8)';
+    cctx.beginPath();
+    cctx.roundRect(ch.x + 8, ch.y - 50, 140, 72, 6);
+    cctx.fill();
+    cctx.fillStyle = '#fff';
+    cctx.font = `bold 11px Inter, sans-serif`;
+    cctx.fillText(lines[0], ch.x + 14, ch.y - 34);
+    cctx.font = `10px Inter, sans-serif`;
+    lines.slice(1).forEach((l,i) => cctx.fillText(l, ch.x+14, ch.y-18+i*14));
+  }
+
+  // Stats update
+  const displayPower = S.chernobylMode ? S.power : Math.min(S.power, 1.2);
+  document.getElementById('s-power').textContent = Math.round(displayPower * 3200) + ' MWt';
+  document.getElementById('s-temp').textContent = Math.round(270 + S.power * 30) + ' °C';
+  document.getElementById('s-flux').textContent = (S.power * 2.4).toFixed(1) + '×10¹³';
+  const insRods = channels.filter(c => c.type==='rod' && c.insertion > 0.05).length;
+  document.getElementById('s-rods').textContent = insRods + ' / ' + rodCount;
+}
+
+// ─── CIRCUIT CANVAS ───────────────────────────────────────────────────────────
+const circCanvas = document.getElementById('circuitCanvas');
+const ccx = circCanvas.getContext('2d');
+const CW = 700, CH = 480;
+
+// Particles
+const particles = [];
+function makeParticles() {
+  particles.length = 0;
+  // Water up (left pipe)
+  for (let i = 0; i < 20; i++) particles.push({ type:'water', x:180, y:380-i*20, phase: i/20, loop:'up-left' });
+  // Steam out (top)
+  for (let i = 0; i < 15; i++) particles.push({ type:'steam', x:280+i*15, y:120, phase: i/15, loop:'steam-top' });
+  // Condensate return
+  for (let i = 0; i < 12; i++) particles.push({ type:'condensate', x:600-i*20, y:300+i*5, phase: i/12, loop:'return' });
+  // Neutrons
+  for (let i = 0; i < 10; i++) particles.push({ type:'neutron', x: 230+Math.random()*100, y: 200+Math.random()*120, vx:(Math.random()-.5)*3, vy:(Math.random()-.5)*3 });
+}
+makeParticles();
+
+function drawCircuit() {
+  const spd = 1 + S.power * 2;
+  ccx.fillStyle = '#f8f9fa';
+  ccx.fillRect(0,0,CW,CH);
+
+  // --- Draw schematic ---
+  ccx.lineWidth = 16; ccx.lineCap = 'round'; ccx.lineJoin = 'round';
+
+  // Core box
+  const gradient = ccx.createLinearGradient(160,160,350,380);
+  gradient.addColorStop(0, '#1a1a2e');
+  gradient.addColorStop(1, '#0f3460');
+  ccx.fillStyle = gradient;
+  ccx.beginPath(); ccx.roundRect(160,160,190,220,8); ccx.fill();
+  ccx.strokeStyle = '#ff6b35'; ccx.lineWidth = 2;
+  ccx.stroke();
+  ccx.fillStyle = '#fff'; ccx.font = 'bold 13px Inter,sans-serif'; ccx.textAlign='center';
+  ccx.fillText('NÚCLEO RBMK', 255, 278);
+  ccx.font = '11px Inter,sans-serif'; ccx.fillStyle = '#aaa';
+  ccx.fillText('1693 canales', 255, 296);
+  ccx.textAlign='left';
+
+  // Steam drum
+  ccx.fillStyle = '#1e6091';
+  ccx.beginPath(); ccx.roundRect(390,60,120,60,8); ccx.fill();
+  ccx.fillStyle='#fff'; ccx.font='bold 11px Inter,sans-serif'; ccx.textAlign='center';
+  ccx.fillText('SEPARADOR',450,86); ccx.fillText('DE VAPOR',450,100); ccx.textAlign='left';
+
+  // Turbine
+  ccx.fillStyle = '#145a32';
+  ccx.beginPath(); ccx.roundRect(520,160,100,70,8); ccx.fill();
+  ccx.fillStyle='#fff'; ccx.font='bold 12px Inter,sans-serif'; ccx.textAlign='center';
+  ccx.fillText('TURBINA',570,200); ccx.textAlign='left';
+
+  // Condenser
+  ccx.fillStyle = '#1b4f72';
+  ccx.beginPath(); ccx.roundRect(520,290,100,60,8); ccx.fill();
+  ccx.fillStyle='#fff'; ccx.font='bold 11px Inter,sans-serif'; ccx.textAlign='center';
+  ccx.fillText('CONDENSADOR',570,326); ccx.textAlign='left';
+
+  // Feed pump
+  ccx.fillStyle = '#7d6608';
+  ccx.beginPath(); ccx.arc(400,380,28,0,Math.PI*2); ccx.fill();
+  ccx.fillStyle='#fff'; ccx.font='bold 10px Inter,sans-serif'; ccx.textAlign='center';
+  ccx.fillText('BOMBA',400,377); ccx.fillText('FEED',400,389); ccx.textAlign='left';
+
+  // Pipes
+  ccx.lineWidth=6; ccx.setLineDash([]);
+  // hot water/steam up: core top → separator
+  ccx.strokeStyle='#e74c3c';
+  ccx.beginPath(); ccx.moveTo(280,160); ccx.lineTo(280,90); ccx.lineTo(390,90); ccx.stroke();
+  // steam: separator → turbine
+  ccx.strokeStyle='#ecf0f1';
+  ccx.beginPath(); ccx.moveTo(510,90); ccx.lineTo(520,90); ccx.lineTo(520,195); ccx.stroke();
+  // exhaust: turbine → condenser
+  ccx.strokeStyle='#95a5a6';
+  ccx.beginPath(); ccx.moveTo(570,230); ccx.lineTo(570,290); ccx.stroke();
+  // condensate: condenser → pump
+  ccx.strokeStyle='#3498db';
+  ccx.beginPath(); ccx.moveTo(520,320); ccx.lineTo(400,320); ccx.lineTo(400,352); ccx.stroke();
+  // feedwater: pump → core
+  ccx.beginPath(); ccx.moveTo(372,380); ccx.lineTo(255,380); ccx.lineTo(255,380); ccx.stroke();
+
+  // Labels on pipes
+  ccx.fillStyle='#666'; ccx.font='10px Inter,sans-serif';
+  ccx.fillText('Mezcla agua/vapor', 162,82);
+  ccx.fillText('Vapor seco →', 510,82);
+  ccx.fillText('Condensado', 418,315);
+  ccx.fillText('Agua de alimentación', 156,395);
+
+  // Arrows on pipes
+  function arrow(x,y,dir) {
+    ccx.fillStyle='#aaa'; ccx.beginPath();
+    if(dir==='right'){ccx.moveTo(x,y);ccx.lineTo(x-8,y-5);ccx.lineTo(x-8,y+5);}
+    else if(dir==='up'){ccx.moveTo(x,y);ccx.lineTo(x-5,y+8);ccx.lineTo(x+5,y+8);}
+    else if(dir==='down'){ccx.moveTo(x,y);ccx.lineTo(x-5,y-8);ccx.lineTo(x+5,y-8);}
+    else if(dir==='left'){ccx.moveTo(x,y);ccx.lineTo(x+8,y-5);ccx.lineTo(x+8,y+5);}
+    ccx.fill();
+  }
+  arrow(390,90,'right'); arrow(280,100,'up'); arrow(520,195,'down'); arrow(400,360,'down');
+
+  // --- Particles ---
+  for (const p of particles) {
+    p.phase = (p.phase + 0.003*spd) % 1;
+    let px = p.x, py = p.y;
+
+    if (p.type === 'water') {
+      // moves up left pipe then across to separator
+      const t = p.phase;
+      if (t < 0.4) { px=255; py=380-t/0.4*290; }
+      else if (t < 0.7) { const f=(t-0.4)/0.3; px=255+f*135; py=90; }
+      else { px=390; py=90; }
+    } else if (p.type === 'steam') {
+      const t = p.phase;
+      if (t < 0.35) { px=510+t/0.35*10; py=90; }
+      else if (t < 0.7) { const f=(t-0.35)/0.35; px=520; py=90+f*105; }
+      else { px=520+p.phase*60; py=195; }
+    } else if (p.type === 'condensate') {
+      const t = p.phase;
+      if (t < 0.35) { px=570; py=290+t/0.35*30; }
+      else if (t < 0.65) { const f=(t-0.35)/0.3; px=570-f*170; py=320; }
+      else if (t < 0.85) { const f=(t-0.65)/0.2; px=400; py=320+f*60; }
+      else { const f=(t-0.85)/0.15; px=400-f*145; py=380; }
+    } else if (p.type === 'neutron') {
+      // bounce inside core
+      p.x += p.vx * spd;
+      p.y += p.vy * spd;
+      if (p.x < 165 || p.x > 345) p.vx *= -1;
+      if (p.y < 165 || p.y > 375) p.vy *= -1;
+      px=p.x; py=p.y;
+    }
+
+    const colors = { water:'#3498db', steam:'#ecf0f1', condensate:'#f39c12', neutron:'#ffe066' };
+    const sizes  = { water:4, steam:3, condensate:3.5, neutron:4 };
+    ccx.beginPath();
+    ccx.arc(px, py, sizes[p.type], 0, Math.PI*2);
+    ccx.fillStyle = colors[p.type];
+    ccx.fill();
+    if (p.type === 'neutron') {
+      ccx.beginPath(); ccx.arc(px,py,7,0,Math.PI*2);
+      ccx.strokeStyle='rgba(255,230,50,.3)'; ccx.lineWidth=2; ccx.stroke();
+    }
+  }
+
+  // Title
+  ccx.fillStyle='#1a1a2e'; ccx.font='bold 14px Inter,sans-serif'; ccx.textAlign='left';
+  ccx.fillText('Circuito de Refrigeración RBMK-1000', 20, 30);
+  ccx.fillStyle='#888'; ccx.font='11px Inter,sans-serif';
+  ccx.fillText('Sistema de dos circuitos independientes con hervimiento en canal', 20, 48);
+}
+
+// ─── FUEL CANVAS ─────────────────────────────────────────────────────────────
+const fuelCanvas = document.getElementById('fuelCanvas');
+const fctx = fuelCanvas.getContext('2d');
+let fuelTick = 0;
+function drawFuel() {
+  fuelTick++;
+  const w = 360, h = 360;
+  fctx.fillStyle = '#1a1a1a';
+  fctx.fillRect(0,0,w,h);
+  const cx=180,cy=180;
+  const pulse = 1 + 0.03 * Math.sin(fuelTick * 0.05) * S.power;
+
+  // Heat glow layers
+  const glowColors = [
+    [90*pulse,'rgba(255,30,0,.05)'],[75*pulse,'rgba(255,60,0,.08)'],
+    [62*pulse,'rgba(255,100,0,.1)'],[50*pulse,'rgba(255,140,0,.15)']
+  ];
+  for (const [r,c] of glowColors) {
+    const g = fctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,c); g.addColorStop(1,'transparent');
+    fctx.beginPath(); fctx.arc(cx,cy,r,0,Math.PI*2);
+    fctx.fillStyle=g; fctx.fill();
+  }
+
+  // Coolant water
+  fctx.beginPath(); fctx.arc(cx,cy,85,0,Math.PI*2);
+  fctx.fillStyle='#1a3a5c'; fctx.fill();
+
+  // Zircaloy cladding
+  fctx.beginPath(); fctx.arc(cx,cy,60,0,Math.PI*2);
+  const cladG = fctx.createRadialGradient(cx,cy,40,cx,cy,65);
+  cladG.addColorStop(0,'#7f8c8d'); cladG.addColorStop(1,'#576574');
+  fctx.fillStyle=cladG; fctx.fill();
+
+  // Gap gas
+  fctx.beginPath(); fctx.arc(cx,cy,52,0,Math.PI*2);
+  fctx.fillStyle='rgba(255,200,100,.15)'; fctx.fill();
+
+  // UO2 pellet
+  const pelletG = fctx.createRadialGradient(cx,cy,5,cx,cy,50);
+  pelletG.addColorStop(0, `rgba(255,${Math.round(200+55*Math.sin(fuelTick*.07))},50,1)`);
+  pelletG.addColorStop(0.5,'rgba(200,80,20,1)');
+  pelletG.addColorStop(1,'rgba(100,30,10,1)');
+  fctx.beginPath(); fctx.arc(cx,cy,50*pulse,0,Math.PI*2);
+  fctx.fillStyle=pelletG; fctx.fill();
+
+  // Labels
+  const labels=[
+    [cx,cy,'UO₂ ~1800°C','#ffe066',10],
+    [cx,cy+65,'Vaina Zircaloy 310°C','#aaa',10],
+    [cx,cy+90,'Refrigerante H₂O','#3498db',10]
+  ];
+  fctx.textAlign='center';
+  for(const[x,y,txt,col,sz]of labels){
+    fctx.fillStyle=col; fctx.font=`${sz}px Inter,sans-serif`;
+    fctx.fillText(txt,x,y+4);
+  }
+  fctx.textAlign='left';
+
+  // Title
+  fctx.fillStyle='#eee'; fctx.font='bold 13px Inter,sans-serif'; fctx.textAlign='center';
+  fctx.fillText('Sección transversal — Varilla de Combustible', cx, 20);
+  fctx.textAlign='left';
+}
+
+// ─── CONTROL ROD CANVAS ──────────────────────────────────────────────────────
+const ctrlCanvas = document.getElementById('ctrlCanvas');
+const rctx = ctrlCanvas.getContext('2d');
+let ctrlTick=0, ctrlAnim=0, ctrlAnimDir=1;
+function drawCtrl() {
+  ctrlTick++;
+  const cw=340,ch=420;
+  rctx.fillStyle='#f8f9fa'; rctx.fillRect(0,0,cw,ch);
+
+  // Animate rod insertion
+  ctrlAnim += 0.005 * ctrlAnimDir;
+  if(ctrlAnim>=1){ctrlAnim=1;ctrlAnimDir=-1;}
+  if(ctrlAnim<=0){ctrlAnim=0;ctrlAnimDir=1;}
+
+  const insertion = ctrlAnim;
+  const rodTop = 30, rodBottom = 230;
+  const rodH = rodBottom - rodTop;
+  const cx = 170;
+
+  // Core channel
+  rctx.fillStyle='#2d4a2d';
+  rctx.fillRect(cx-15, rodTop, 30, rodH);
+
+  // Water in channel
+  const waterFill = 1 - insertion;
+  rctx.fillStyle='rgba(52,152,219,.4)';
+  rctx.fillRect(cx-14, rodTop+rodH*insertion, 28, rodH*waterFill);
+
+  // Graphite displacer (bottom, green)
+  const gdH = 40;
+  const gdY = rodTop + rodH * insertion - gdH + 10;
+  if(insertion > 0.02) {
+    rctx.fillStyle='#27ae60';
+    rctx.fillRect(cx-10, Math.max(rodTop, gdY), 20, Math.min(gdH, rodBottom-Math.max(rodTop,gdY)));
+  }
+
+  // B4C absorber (above displacer, blue)
+  const absH = 80;
+  const absY = gdY - absH;
+  rctx.fillStyle='#2980b9';
+  rctx.fillRect(cx-10, Math.max(10, absY), 20, absH);
+
+  // Rod shaft
+  rctx.fillStyle='#777';
+  rctx.fillRect(cx-4, 10, 8, Math.max(0, gdY-10));
+
+  // Labels
+  rctx.fillStyle='#333'; rctx.font='11px Inter,sans-serif';
+  rctx.fillText('Absorbedor B₄C', cx+18, Math.max(40, absY+absH/2+4));
+  rctx.fillStyle='#27ae60';
+  rctx.fillText('Desplazador grafito', cx+18, Math.max(60,gdY+gdH/2+4));
+  rctx.fillStyle='rgba(52,152,219,.9)';
+  rctx.fillText('Refrigerante H₂O', cx+18, rodTop+rodH*0.8);
+
+  // Border
+  rctx.strokeStyle='#ccc'; rctx.lineWidth=2;
+  rctx.strokeRect(cx-15, rodTop, 30, rodH);
+
+  // Insertion label
+  rctx.fillStyle='#333'; rctx.font='bold 12px Inter,sans-serif';
+  rctx.textAlign='center';
+  rctx.fillText(`Inserción: ${Math.round(insertion*100)}%`, cx, rodBottom+24);
+  rctx.textAlign='left';
+
+  // Reactivity curve
+  const aX=30, aY=260, aW=280, aH=120;
+  rctx.fillStyle='#1a1a2e'; rctx.fillRect(aX,aY,aW,aH);
+  rctx.strokeStyle='#333'; rctx.lineWidth=1;
+  rctx.strokeRect(aX,aY,aW,aH);
+
+  // Axes
+  rctx.strokeStyle='#666'; rctx.lineWidth=1;
+  rctx.beginPath(); rctx.moveTo(aX+20,aY+10); rctx.lineTo(aX+20,aY+aH-10); rctx.stroke();
+  rctx.beginPath(); rctx.moveTo(aX+20,aY+aH/2); rctx.lineTo(aX+aW-10,aY+aH/2); rctx.stroke();
+
+  // Reactivity curve (positive spike then negative)
+  rctx.strokeStyle='#e74c3c'; rctx.lineWidth=2;
+  rctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const t=i/200;
+    let ry;
+    if(t<0.15){ ry = t/0.15*0.4; }          // spike up
+    else if(t<0.35){ ry = 0.4*(1-(t-0.15)/0.2*1.3); } // come back down below 0
+    else { ry = -0.5 - (t-0.35)*0.5; }       // continue negative
+    ry = Math.max(-0.8, Math.min(0.8, ry));
+    const sx = aX+20 + t*(aW-30);
+    const sy = aY+aH/2 - ry*(aH/2-12);
+    if(i===0) rctx.moveTo(sx,sy); else rctx.lineTo(sx,sy);
+  }
+  rctx.stroke();
+
+  // Highlight current insertion point
+  const t = insertion;
+  let ry;
+  if(t<0.15){ ry = t/0.15*0.4; }
+  else if(t<0.35){ ry = 0.4*(1-(t-0.15)/0.2*1.3); }
+  else { ry = -0.5 - (t-0.35)*0.5; }
+  ry = Math.max(-0.8, Math.min(0.8, ry));
+  const sx = aX+20 + t*(aW-30), sy = aY+aH/2 - ry*(aH/2-12);
+  rctx.beginPath(); rctx.arc(sx,sy,5,0,Math.PI*2);
+  rctx.fillStyle='#ffe066'; rctx.fill();
+
+  rctx.fillStyle='#aaa'; rctx.font='10px Inter,sans-serif'; rctx.textAlign='center';
+  rctx.fillText('Tiempo tras inserción →', aX+aW/2, aY+aH-2);
+  rctx.fillStyle='#e74c3c';
+  rctx.fillText('⚠ Pico de reactividad positiva (efecto punta grafito)', aX+aW/2, aY+aH+18);
+  rctx.textAlign='left';
+
+  rctx.fillStyle='#333'; rctx.font='bold 12px Inter,sans-serif'; rctx.textAlign='center';
+  rctx.fillText('Curva de Reactividad post-SCRAM', aX+aW/2, aY-6);
+  rctx.textAlign='left';
+}
+
+// ─── PHYSICS CANVAS ──────────────────────────────────────────────────────────
+const physCanvas = document.getElementById('physCanvas');
+const pctx = physCanvas.getContext('2d');
+const fissions = [];
+let physTick = 0;
+function addFission(x,y,gen) {
+  if(gen>4) return;
+  fissions.push({ x,y,gen,tick:physTick, neutrons:[] });
+  // Create 2 daughter neutrons
+  for(let i=0;i<2;i++){
+    const ang = Math.random()*Math.PI*2;
+    const spd = 1.5 + Math.random();
+    fissions[fissions.length-1].neutrons.push({ang,spd,dist:0});
+  }
+}
+function drawPhysics() {
+  physTick++;
+  pctx.fillStyle='#0a0a1a'; pctx.fillRect(0,0,480,380);
+
+  // Title
+  pctx.fillStyle='#eee'; pctx.font='bold 13px Inter,sans-serif'; pctx.textAlign='center';
+  pctx.fillText('Reacción de Fisión en Cadena — U-235', 240, 22);
+  pctx.textAlign='left';
+
+  // Trigger new fissions if few
+  if(fissions.length<3 && physTick%120===0) {
+    addFission(100+Math.random()*280, 60+Math.random()*260, 0);
+  }
+  if(fissions.length===0 && physTick>10) addFission(240,190,0);
+
+  for(let fi=fissions.length-1;fi>=0;fi--){
+    const f = fissions[fi];
+    const age = physTick - f.tick;
+
+    // Draw nucleus
+    const nr = Math.max(4, 18 - age*0.3);
+    if(nr > 2) {
+      const g = pctx.createRadialGradient(f.x,f.y,0,f.x,f.y,nr);
+      g.addColorStop(0,'#ffe066'); g.addColorStop(1,'rgba(255,140,0,.0)');
+      pctx.beginPath(); pctx.arc(f.x,f.y,nr,0,Math.PI*2);
+      pctx.fillStyle=g; pctx.fill();
+    }
+
+    // Label
+    if(age<30) {
+      pctx.fillStyle='rgba(255,255,255,.8)'; pctx.font='10px Inter,sans-serif'; pctx.textAlign='center';
+      pctx.fillText('U-235', f.x, f.y-20);
+      pctx.textAlign='left';
+    } else if(age>20 && age<60) {
+      pctx.fillStyle='rgba(255,200,50,.8)'; pctx.font='10px Inter,sans-serif'; pctx.textAlign='center';
+      pctx.fillText('FISIÓN!', f.x, f.y-22);
+      pctx.textAlign='left';
+    }
+
+    // Move neutrons outward
+    for(const n of f.neutrons){
+      n.dist += n.spd * (0.5 + S.power*0.5);
+      const nx = f.x + Math.cos(n.ang)*n.dist;
+      const ny = f.y + Math.sin(n.ang)*n.dist;
+      // Draw neutron
+      pctx.beginPath(); pctx.arc(nx,ny,3,0,Math.PI*2);
+      pctx.fillStyle='#ffe066'; pctx.fill();
+      pctx.beginPath(); pctx.arc(nx,ny,6,0,Math.PI*2);
+      pctx.strokeStyle='rgba(255,230,50,.3)'; pctx.lineWidth=1.5; pctx.stroke();
+      // Trigger new fission on hit
+      if(n.dist > 60 && n.dist < 65 && Math.random()<0.04){
+        addFission(nx,ny,f.gen+1);
+      }
+    }
+
+    // Remove old
+    if(age > 200 || fissions.length > 30) fissions.splice(fi,1);
+  }
+
+  // Graphite label
+  pctx.fillStyle='rgba(100,200,100,.15)'; pctx.fillRect(0,0,480,380);
+  pctx.fillStyle='rgba(100,200,100,.08)'; pctx.fillRect(0,0,480,380);
+  pctx.fillStyle='rgba(60,160,60,.5)'; pctx.font='bold 11px Inter,sans-serif'; pctx.textAlign='right';
+  pctx.fillText('Moderador de Grafito', 475, 370);
+  pctx.textAlign='left';
+}
+
+// ─── CHERNOBYL TIMELINE ───────────────────────────────────────────────────────
+const events = [
+  { time:'25/04 01:00',label:'Prueba\nprogramada',color:'green',
+    desc:'Se planifica una prueba de seguridad para evaluar si los generadores de turbina podían suministrar energía de emergencia durante una parada. La prueba fue pospuesta 9 horas por demanda eléctrica.' },
+  { time:'25/04 14:00',label:'Reactor al\n50%',color:'green',
+    desc:'El reactor se reduce a 1600 MW para la prueba. Un operador del despacho eléctrico de Kiev ordena mantener la potencia porque se necesita la electricidad. La prueba se pospone hasta la noche.' },
+  { time:'26/04 00:05',label:'Reducción\na 200 MW',color:'orange',
+    desc:'Leonid Toptunov, operador de 25 años, intenta reducir la potencia pero la lleva accidentalmente a casi 0 MW debido a envenenamiento por xenón-135 (subproducto de fisión que absorbe neutrones).' },
+  { time:'26/04 01:00',label:'Potencia\nestabilizada',color:'orange',
+    desc:'Tras 30 minutos de lucha, logran estabilizar el reactor en ~200 MW (en lugar de los 700–1000 MW requeridos por el procedimiento). La dirección decide continuar la prueba de todas formas.' },
+  { time:'26/04 01:23:04',label:'Inicio\nprueba',color:'orange',
+    desc:'Se cierran las válvulas de vapor de las turbinas. Las bombas de refrigeración, al funcionar solo con la energía residual de la turbina, disminuyen su caudal. El núcleo empieza a hervir más.' },
+  { time:'26/04 01:23:40',label:'AZ-5\nSCRAM',color:'red',
+    desc:'El jefe de turno Aleksandr Akimov ordena presionar el botón AZ-5. Las 211 barras de control comienzan a bajar. Por el DEFECTO DE DISEÑO: las puntas de grafito entran primero, aumentando la reactividad.' },
+  { time:'26/04 01:23:43',label:'Pico de\npotencia',color:'red',
+    desc:'En solo 3 segundos, la potencia sube a ~33,000 MW (10 veces el máximo diseñado). El combustible se fragmenta, el vapor explota. Los operadores no pueden entender qué está pasando.' },
+  { time:'26/04 01:23:44',label:'1ª\nExplosión',color:'red',
+    desc:'Una explosión de vapor destruye la tapa del reactor de 1000 toneladas. El grafito y el núcleo salen disparados al exterior. Se abre el reactor a la atmósfera por primera vez en su historia.' },
+  { time:'26/04 01:23:45',label:'2ª\nExplosión',color:'red',
+    desc:'Una segunda explosión, posiblemente nuclear o de hidrógeno, dispersa el material del núcleo en llamas por los edificios adyacentes. Se inician más de 30 incendios simultáneos.' },
+  { time:'26/04 02:00+',label:'Incendio\ngrafito',color:'red',
+    desc:'El grafito del reactor arde a más de 2000°C. Los bomberos, sin saber que es un incendio radiactivo, lo atacan con agua — sin efecto. El incendio durará 10 días y liberará 400 veces la radiación de Hiroshima.' }
+];
+
+const tl = document.getElementById('timeline');
+events.forEach((ev,i) => {
+  const div = document.createElement('div');
+  div.className = 'tev';
+  div.innerHTML = `
+    <div class="tev-dot ${ev.color}"></div>
+    <div class="tev-time">${ev.time}</div>
+    <div class="tev-label">${ev.label.replace('\n','<br>')}</div>`;
+  div.onclick = () => {
+    const det = document.getElementById('tev-detail');
+    det.textContent = ev.time + ' — ' + ev.desc;
+    det.classList.add('visible');
+    document.querySelectorAll('.tev-dot').forEach(d => d.style.transform='');
+    div.querySelector('.tev-dot').style.transform = 'scale(1.6)';
+  };
+  tl.appendChild(div);
+});
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+function setPower(v) {
+  S.power = v / 100;
+  document.getElementById('powerVal').textContent = v + '%';
+}
+
+function updateStatus(txt, cls) {
+  const el = document.getElementById('reactor-status');
+  el.textContent = txt;
+  el.className = cls ? 'badge ' + cls : 'badge';
+}
+
+function showNarr(txt, delay, duration) {
+  setTimeout(() => {
+    const el = document.getElementById('narr');
+    el.textContent = txt;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', duration || 3000);
+  }, delay || 0);
+}
+
+function doScram() {
+  if(S.scramming || S.chernobylMode) return;
+  S.scramming = true;
+  updateStatus('⚡ SCRAM INICIADO', 'warn');
+
+  // Flash overlay
+  const ov = document.getElementById('scram-overlay');
+  ov.className = 'active';
+  setTimeout(() => ov.className = '', 500);
+
+  // Rods insert fully
+  let t = 0;
+  const insertInterval = setInterval(() => {
+    t += 0.04;
+    // First 3s: insertion spike (positive scram effect — graphite tip)
+    for(const ch of channels) {
+      if(ch.type === 'rod') {
+        if(t < 0.15) {
+          // Graphite tip enters — slight power increase
+          ch.insertion = Math.min(1, ch.insertion + 0.02);
+          ch.temp = Math.min(1, ch.temp + 0.01);
+        } else {
+          ch.insertion = Math.min(1, ch.insertion + 0.04);
+        }
+      }
+    }
+    if(t > 0.2) {
+      S.power = Math.max(0.01, S.power * 0.93);
+      document.getElementById('powerVal').textContent = Math.round(S.power*100) + '%';
+      document.getElementById('powerSlider').value = Math.round(S.power*100);
+    }
+    if(t >= 1) {
+      clearInterval(insertInterval);
+      S.scramming = false;
+      updateStatus('🔴 REACTOR PARADO', 'danger');
+      // Show SCRAM warning message
+      const msg = document.getElementById('scram-msg');
+      msg.innerHTML = '⚠ SCRAM POSITIVO<br><span style="font-size:13px;font-weight:400">Defecto de diseño RBMK:<br>Puntas de grafito aumentaron reactividad</span>';
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 5000);
+    }
+  }, 60);
+}
+
+function doChain() {
+  if(S.chernobylMode) return;
+  startWave(CX, CY, true);
+  showNarr('⚡ Reacción en cadena iniciada — propagación neutrónica', 0, 2500);
+}
+
+function doChernobyl() {
+  if(S.chernobylMode) return;
+  S.chernobylMode = true;
+
+  // Switch to Núcleo tab
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab').classList.add('active');
+  document.getElementById('tab-nucleo').classList.add('active');
+
+  updateStatus('☢ MODO CHERNÓBIL', 'danger');
+  showNarr('25 de abril 1986 — Prueba de seguridad programada...', 0, 3000);
+  showNarr('01:23:40 — AZ-5 presionado. Barras insertando...', 3200, 2800);
+  showNarr('⚠ EFECTO PUNTA GRAFITO — Reactividad aumentando...', 6200, 3000);
+
+  // Power drops first (xenon poisoning simulation)
+  let phase = 0;
+  const chernSeq = setInterval(() => {
+    phase += 0.02;
+    if(phase < 0.5) {
+      // Dropping to 1%
+      S.power = 1.0 - phase*1.96;
+      S.power = Math.max(0.01, S.power);
+    } else if(phase < 0.8) {
+      // Rising back to 200MW
+      S.power = 0.01 + (phase-0.5)/0.3 * 0.05;
+    } else if(phase < 1.0) {
+      // Spike!
+      S.power = 0.06 + (phase-0.8)/0.2 * 10;
+    } else {
+      // Explosion
+      clearInterval(chernSeq);
+      S.power = 10.3;
+
+      // Flash
+      const ov = document.getElementById('cherno-overlay');
+      ov.className = 'active';
+      setTimeout(() => ov.className = '', 900);
+      showNarr('💥 01:23:44 — PRIMERA EXPLOSIÓN — Potencia: 33,000 MWt', 200, 4000);
+      showNarr('💥 01:23:45 — SEGUNDA EXPLOSIÓN — Núcleo destruido', 4400, 4000);
+
+      // Destroy channels from center out
+      let destroyRing = 0;
+      const destInterval = setInterval(() => {
+        destroyRing += 0.8;
+        let anyDestroyed = false;
+        for(const ch of channels) {
+          if(!ch.destroyed && ch.dist < destroyRing) {
+            ch.destroyed = Math.random() < 0.7 + destroyRing*0.01;
+            if(ch.destroyed) anyDestroyed = true;
+          }
+        }
+        S.power = Math.max(0, S.power - 0.15);
+        if(destroyRing > CORE_R*1.2) {
+          clearInterval(destInterval);
+          S.power = 0;
+          S.chernobylMode = false;
+          updateStatus('💀 REACTOR DESTRUIDO', 'danger');
+          showNarr('☢ Reactor 4 destruido. 31 muertos inmediatos. ~600,000 liquidadores expuestos.', 1000, 6000);
+          // Reset channels after delay
+          setTimeout(() => {
+            for(const ch of channels) ch.destroyed = false;
+            S.power = 1.0;
+            document.getElementById('powerSlider').value = 100;
+            document.getElementById('powerVal').textContent = '100%';
+            updateStatus('OPERANDO NORMAL');
+          }, 10000);
+        }
+      }, 80);
+    }
+    document.getElementById('powerSlider').value = Math.min(120, Math.round(S.power*100));
+    document.getElementById('powerVal').textContent = Math.round(S.power*100) + '%';
+  }, 60);
+}
+
+// ─── MAIN LOOP ────────────────────────────────────────────────────────────────
+function loop() {
+  drawCore();
+  const active = document.querySelector('.panel.active');
+  if(active.id === 'tab-circuito') drawCircuit();
+  else if(active.id === 'tab-combustible') drawFuel();
+  else if(active.id === 'tab-control') drawCtrl();
+  else if(active.id === 'tab-fisica') drawPhysics();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
