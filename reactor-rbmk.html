@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactor RBMK — Guía Visual Completa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red:    #e53e3e;
+    --orange: #dd6b20;
+    --yellow: #d69e2e;
+    --green:  #276749;
+    --teal:   #2c7a7b;
+    --blue:   #2b6cb0;
+    --indigo: #434190;
+    --gray1:  #f7f8fa;
+    --gray2:  #edf0f4;
+    --gray3:  #cbd5e0;
+    --gray4:  #718096;
+    --gray5:  #2d3748;
+    --text:   #1a202c;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #ffffff;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    color: #fff;
+    padding: 70px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent, transparent 40px,
+      rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px
+    );
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px;
+    padding: 5px 18px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: #90cdf4;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: #fbd38d; }
+  .hero p {
+    max-width: 700px;
+    margin: 0 auto;
+    font-size: 1.1rem;
+    color: #bee3f8;
+    opacity: 0.9;
+  }
+  .hero-sub {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-stat {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 14px 24px;
+    min-width: 140px;
+  }
+  .hero-stat .val { font-size: 1.6rem; font-weight: 800; color: #fbd38d; }
+  .hero-stat .lbl { font-size: 0.72rem; color: #90cdf4; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── NAV ── */
+  .toc {
+    background: var(--gray1);
+    border-bottom: 2px solid var(--gray2);
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc a {
+    display: block;
+    padding: 16px 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray4);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+  }
+  .toc a:hover { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* ── SECTIONS ── */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 70px 40px;
+  }
+  .section + .section { border-top: 2px solid var(--gray2); }
+
+  .sec-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+  .sec-label::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 2px;
+    background: var(--blue);
+  }
+  h2.sec-title {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    color: var(--gray5);
+  }
+  .sec-lead {
+    font-size: 1.05rem;
+    color: var(--gray4);
+    max-width: 800px;
+    margin-bottom: 48px;
+  }
+
+  /* ── DIAGRAM WRAPPER ── */
+  .diagram-wrap {
+    background: var(--gray1);
+    border: 2px solid var(--gray2);
+    border-radius: 20px;
+    padding: 32px;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-top: 24px;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff;
+    border: 1px solid var(--gray3);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .legend-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── PROCESS STEPS ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-top: 8px;
+  }
+  .step-card {
+    background: #fff;
+    border: 1.5px solid var(--gray2);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .step-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .step-num {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+  .step-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+  .step-card p  { font-size: 0.85rem; color: var(--gray4); line-height: 1.6; }
+  .step-arrow {
+    position: absolute;
+    top: 50%; right: -14px;
+    width: 28px; height: 28px;
+    background: var(--gray2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    color: var(--gray4);
+    z-index: 1;
+  }
+
+  /* ── COMPONENT GRID ── */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .comp-card {
+    border-radius: 16px;
+    padding: 28px;
+    border: 1.5px solid var(--gray2);
+    background: #fff;
+  }
+  .comp-icon {
+    font-size: 2rem;
+    margin-bottom: 14px;
+    display: block;
+  }
+  .comp-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .comp-card p  { font-size: 0.84rem; color: var(--gray4); line-height: 1.65; }
+  .comp-tag {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── FUEL SECTION ── */
+  .fuel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 700px) { .fuel-layout { grid-template-columns: 1fr; } }
+  .fuel-diagram { background: var(--gray1); border: 2px solid var(--gray2); border-radius: 16px; padding: 24px; }
+
+  /* ── COMPARISON TABLE ── */
+  .tbl-wrap { overflow-x: auto; border-radius: 16px; border: 1.5px solid var(--gray2); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  thead tr { background: var(--gray5); color: #fff; }
+  thead th { padding: 14px 20px; text-align: left; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.5px; }
+  tbody tr:nth-child(even) { background: var(--gray1); }
+  tbody td { padding: 13px 20px; border-bottom: 1px solid var(--gray2); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  .td-good { color: #276749; font-weight: 600; }
+  .td-bad  { color: #c53030; font-weight: 600; }
+
+  /* ── DANGER BOX ── */
+  .danger-box {
+    background: #fff5f5;
+    border: 2px solid #feb2b2;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-top: 40px;
+    display: flex; gap: 20px; align-items: flex-start;
+  }
+  .danger-icon { font-size: 2rem; flex-shrink: 0; margin-top: 2px; }
+  .danger-box h3 { font-size: 1rem; font-weight: 700; color: #c53030; margin-bottom: 6px; }
+  .danger-box p { font-size: 0.85rem; color: #742a2a; line-height: 1.65; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--gray5);
+    color: #a0aec0;
+    text-align: center;
+    padding: 32px 40px;
+    font-size: 0.8rem;
+  }
+  footer strong { color: #e2e8f0; }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 36px; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: var(--gray2);
+  }
+  .tl-item { position: relative; margin-bottom: 28px; }
+  .tl-dot {
+    position: absolute; left: -32px; top: 4px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px var(--gray3);
+  }
+  .tl-item h4 { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+  .tl-item p  { font-size: 0.83rem; color: var(--gray4); }
+
+  /* ── ISOTOPE TABLE ── */
+  .isotope-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .iso-card {
+    background: var(--gray1);
+    border: 1.5px solid var(--gray2);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+  }
+  .iso-symbol { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; }
+  .iso-name   { font-size: 0.75rem; color: var(--gray4); margin-top: 4px; }
+  .iso-pct    { font-size: 1rem; font-weight: 700; margin-top: 8px; }
+
+  @media (max-width: 600px) {
+    .section { padding: 48px 20px; }
+    .hero { padding: 48px 20px 40px; }
+    .toc { padding: 0 10px; }
+    .steps { grid-template-columns: 1fr; }
+    .comp-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-badge">Energía Nuclear · Reactor Soviético</div>
+  <h1>Reactor <span>RBMK</span><br>Guía Visual Completa</h1>
+  <p>Reactor de Gran Potencia de Canal con Moderador de Grafito — la tecnología detrás de Chernóbil y las centrales nucleares soviéticas.</p>
+  <div class="hero-sub">
+    <div class="hero-stat"><div class="val">1 000</div><div class="lbl">MWe potencia</div></div>
+    <div class="hero-stat"><div class="val">1 693</div><div class="lbl">Canales de combustible</div></div>
+    <div class="hero-stat"><div class="val">1970</div><div class="lbl">Primer diseño</div></div>
+    <div class="hero-stat"><div class="val">~700°C</div><div class="lbl">Temp. núcleo</div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="toc">
+  <a href="#diagrama">Diagrama General</a>
+  <a href="#funcionamiento">Funcionamiento</a>
+  <a href="#componentes">Componentes</a>
+  <a href="#combustible">Combustible</a>
+  <a href="#canal">Canal de Combustible</a>
+  <a href="#agua">Circuito de Agua</a>
+  <a href="#control">Barras de Control</a>
+  <a href="#comparativa">Comparativa</a>
+  <a href="#defectos">Defectos Fatales</a>
+</nav>
+
+
+<!-- ════════════════════════════════════════
+     DIAGRAMA PRINCIPAL
+════════════════════════════════════════ -->
+<div id="diagrama" class="section">
+  <div class="sec-label">Visión General</div>
+  <h2 class="sec-title">Diagrama del Reactor RBMK</h2>
+  <p class="sec-lead">Vista transversal del reactor mostrando sus principales sistemas: el núcleo de grafito, los canales de combustible, el circuito de vapor y los sistemas de control.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 960 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <!-- Gradients -->
+        <linearGradient id="gradCore" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#4a5568"/>
+          <stop offset="100%" style="stop-color:#2d3748"/>
+        </linearGradient>
+        <linearGradient id="gradSteam" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" style="stop-color:#63b3ed"/>
+          <stop offset="100%" style="stop-color:#bee3f8"/>
+        </linearGradient>
+        <linearGradient id="gradWater" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#2b6cb0"/>
+          <stop offset="100%" style="stop-color:#1a365d"/>
+        </linearGradient>
+        <linearGradient id="gradFuel" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#c05621"/>
+          <stop offset="100%" style="stop-color:#ed8936"/>
+        </linearGradient>
+        <linearGradient id="gradGraphite" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#667eea"/>
+          <stop offset="100%" style="stop-color:#764ba2"/>
+        </linearGradient>
+        <linearGradient id="gradTurbine" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#38a169"/>
+          <stop offset="100%" style="stop-color:#276749"/>
+        </linearGradient>
+        <linearGradient id="gradDrum" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#e2e8f0"/>
+          <stop offset="100%" style="stop-color:#a0aec0"/>
+        </linearGradient>
+        <radialGradient id="gradGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#fefcbf;stop-opacity:0.8"/>
+          <stop offset="100%" style="stop-color:#f6e05e;stop-opacity:0"/>
+        </radialGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.15)"/>
+        </filter>
+        <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#2b6cb0"/>
+        </marker>
+        <marker id="arrowSteam" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#63b3ed"/>
+        </marker>
+        <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#38a169"/>
+        </marker>
+        <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#e53e3e"/>
+        </marker>
+        <!-- Hatching for concrete -->
+        <pattern id="concrete" width="8" height="8" patternUnits="userSpaceOnUse">
+          <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="#cbd5e0" stroke-width="1.5"/>
+        </pattern>
+        <!-- Hatching for graphite -->
+        <pattern id="graphHatch" width="6" height="6" patternUnits="userSpaceOnUse">
+          <path d="M0,6 l6,-6" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        </pattern>
+      </defs>
+
+      <!-- Background -->
+      <rect width="960" height="680" fill="#f7f8fa"/>
+
+      <!-- ─── CONCRETE BIOLOGICAL SHIELD ─── -->
+      <rect x="40" y="80" width="520" height="480" rx="6" fill="url(#concrete)" stroke="#a0aec0" stroke-width="2"/>
+      <rect x="40" y="80" width="520" height="480" rx="6" fill="rgba(200,210,220,0.4)" stroke="#a0aec0" stroke-width="2"/>
+      <text x="55" y="100" font-size="10" fill="#718096" font-weight="600">ESCUDO BIOLÓGICO (Hormigón + Acero)</text>
+
+      <!-- ─── GRAPHITE MODERATOR CORE ─── -->
+      <rect x="110" y="140" width="380" height="360" rx="8" fill="url(#gradCore)" filter="url(#shadow)"/>
+      <rect x="110" y="140" width="380" height="360" rx="8" fill="url(#graphHatch)"/>
+      <!-- Core glow -->
+      <ellipse cx="300" cy="320" rx="160" ry="140" fill="url(#gradGlow)" opacity="0.5"/>
+      <text x="300" y="168" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.6)" font-weight="700" letter-spacing="2">NÚCLEO DE GRAFITO</text>
+
+      <!-- ─── FUEL CHANNELS (grid) ─── -->
+      <!-- Row 1 -->
+      <g filter="url(#glow)">
+        <!-- 7x7 grid of fuel channels -->
+        <!-- Row 1 -->
+        <rect x="152" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="182" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="212" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="242" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="272" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="302" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="332" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="362" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="392" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="422" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+        <rect x="452" y="190" width="16" height="240" rx="3" fill="url(#gradFuel)" opacity="0.9"/>
+      </g>
+
+      <!-- Graphite blocks between channels (visual) -->
+      <g opacity="0.5">
+        <rect x="170" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="200" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="230" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="260" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="290" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="320" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="350" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="380" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="410" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+        <rect x="440" y="195" width="10" height="230" rx="2" fill="#4a5568"/>
+      </g>
+
+      <!-- ─── CONTROL RODS ─── -->
+      <!-- Shown as darker bars interspersed -->
+      <g opacity="0.95">
+        <rect x="168" y="140" width="10" height="100" rx="2" fill="#1a365d"/>
+        <rect x="228" y="140" width="10" height="130" rx="2" fill="#1a365d"/>
+        <rect x="288" y="140" width="10" height="80"  rx="2" fill="#1a365d"/>
+        <rect x="348" y="140" width="10" height="120" rx="2" fill="#1a365d"/>
+        <rect x="408" y="140" width="10" height="90"  rx="2" fill="#1a365d"/>
+        <rect x="168" y="440" width="10" height="60"  rx="2" fill="#1a365d"/>
+        <rect x="288" y="420" width="10" height="80"  rx="2" fill="#1a365d"/>
+        <rect x="408" y="450" width="10" height="50"  rx="2" fill="#1a365d"/>
+      </g>
+      <!-- Label control rods -->
+      <rect x="130" y="148" width="90" height="20" rx="4" fill="#1a365d" opacity="0.9"/>
+      <text x="175" y="162" text-anchor="middle" font-size="9" fill="#bee3f8" font-weight="600">BARRA DE CONTROL</text>
+      <!-- Arrow from label to rod -->
+      <line x1="178" y1="168" x2="178" y2="180" stroke="#1a365d" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- ─── TOP PLATE / HEADER ─── -->
+      <rect x="110" y="125" width="380" height="18" rx="4" fill="#4a5568" stroke="#2d3748" stroke-width="1.5"/>
+      <text x="300" y="137" text-anchor="middle" font-size="9" fill="#e2e8f0" font-weight="600">PLACA SUPERIOR — TUBOS DISTRIBUIDORES</text>
+
+      <!-- ─── BOTTOM PLATE ─── -->
+      <rect x="110" y="498" width="380" height="18" rx="4" fill="#4a5568" stroke="#2d3748" stroke-width="1.5"/>
+      <text x="300" y="511" text-anchor="middle" font-size="9" fill="#e2e8f0" font-weight="600">PLACA INFERIOR — COLECTORES DE AGUA</text>
+
+      <!-- ─── WATER INLET PIPES (bottom) ─── -->
+      <!-- Main feed pipe -->
+      <rect x="170" y="516" width="260" height="14" rx="4" fill="url(#gradWater)"/>
+      <line x1="300" y1="530" x2="300" y2="570" stroke="#2b6cb0" stroke-width="3" stroke-dasharray="none"/>
+      <rect x="250" y="568" width="100" height="16" rx="4" fill="url(#gradWater)"/>
+      <text x="300" y="580" text-anchor="middle" font-size="9" fill="#bee3f8" font-weight="600">AGUA DE ALIMENTACIÓN</text>
+
+      <!-- Feed water arrow coming in from right -->
+      <line x1="560" y1="575" x2="365" y2="575" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <text x="620" y="579" font-size="10" fill="#2b6cb0" font-weight="600">Agua fría</text>
+      <text x="620" y="591" font-size="9" fill="#4a5568">(~270°C, 70 bar)</text>
+
+      <!-- ─── STEAM OUTLET PIPES (top) ─── -->
+      <rect x="170" y="110" width="260" height="14" rx="4" fill="url(#gradSteam)"/>
+      <line x1="300" y1="110" x2="300" y2="75" stroke="#63b3ed" stroke-width="3"/>
+      <rect x="250" y="60" width="100" height="16" rx="4" fill="url(#gradSteam)"/>
+      <text x="300" y="72" text-anchor="middle" font-size="9" fill="#1a365d" font-weight="600">VAPOR SATURADO</text>
+      <line x1="350" y1="68" x2="570" y2="68" stroke="#63b3ed" stroke-width="2.5" marker-end="url(#arrowSteam)"/>
+
+      <!-- ─── DRUM SEPARATOR ─── -->
+      <rect x="575" y="40" width="90" height="180" rx="10" fill="url(#gradDrum)" stroke="#718096" stroke-width="2" filter="url(#shadow)"/>
+      <text x="620" y="62" text-anchor="middle" font-size="10" fill="#2d3748" font-weight="700">SEPARADOR</text>
+      <text x="620" y="74" text-anchor="middle" font-size="10" fill="#2d3748" font-weight="700">DE VAPOR</text>
+      <!-- Water level in drum -->
+      <rect x="578" y="130" width="84" height="86" rx="5" fill="url(#gradWater)" opacity="0.7"/>
+      <text x="620" y="175" text-anchor="middle" font-size="9" fill="#bee3f8">Nivel de agua</text>
+      <!-- Steam above -->
+      <rect x="578" y="48" width="84" height="78" rx="5" fill="url(#gradSteam)" opacity="0.6"/>
+      <text x="620" y="90" text-anchor="middle" font-size="9" fill="#1a365d">Vapor</text>
+      <!-- Bubbles -->
+      <circle cx="600" cy="100" r="4" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="615" cy="108" r="3" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="630" cy="98"  r="5" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="645" cy="106" r="3" fill="rgba(255,255,255,0.5)"/>
+      <!-- Steam to turbine -->
+      <line x1="665" y1="70" x2="720" y2="70" stroke="#63b3ed" stroke-width="3" marker-end="url(#arrowSteam)"/>
+      <!-- Water return from drum down -->
+      <line x1="620" y1="220" x2="620" y2="575" stroke="#2b6cb0" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrowBlue)"/>
+      <text x="632" y="400" font-size="9" fill="#2b6cb0" font-weight="600" writing-mode="vertical-rl">Recirculación</text>
+
+      <!-- ─── TURBINE ─── -->
+      <g filter="url(#shadow)">
+        <!-- Turbine body -->
+        <ellipse cx="790" cy="80" rx="55" ry="38" fill="url(#gradTurbine)" stroke="#276749" stroke-width="2"/>
+        <ellipse cx="790" cy="80" rx="40" ry="26" fill="#38a169" opacity="0.6"/>
+        <!-- Blades representation -->
+        <g stroke="#276749" stroke-width="1.5" fill="none" transform="translate(790,80)">
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(0)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(45)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(90)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(135)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(180)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(225)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(270)"/>
+          <line x1="0" y1="-26" x2="0" y2="-12" transform="rotate(315)"/>
+        </g>
+        <circle cx="790" cy="80" r="7" fill="#fff" stroke="#276749" stroke-width="2"/>
+        <text x="790" y="66" text-anchor="middle" font-size="10" fill="white" font-weight="700">TURBINA</text>
+      </g>
+
+      <!-- Shaft to generator -->
+      <line x1="845" y1="80" x2="875" y2="80" stroke="#276749" stroke-width="3"/>
+      <!-- Generator -->
+      <rect x="875" y="56" width="60" height="48" rx="8" fill="#2f855a" stroke="#276749" stroke-width="2"/>
+      <text x="905" y="77" text-anchor="middle" font-size="10" fill="white" font-weight="700">GEN.</text>
+      <text x="905" y="90" text-anchor="middle" font-size="9" fill="#c6f6d5">⚡ 1000 MW</text>
+
+      <!-- Exhaust steam to condenser -->
+      <line x1="790" y1="118" x2="790" y2="160" stroke="#a0aec0" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#arrowGreen)"/>
+      <!-- Condenser -->
+      <rect x="740" y="158" width="100" height="50" rx="8" fill="#e2e8f0" stroke="#a0aec0" stroke-width="1.5"/>
+      <text x="790" y="179" text-anchor="middle" font-size="10" fill="#4a5568" font-weight="700">CONDENSADOR</text>
+      <text x="790" y="192" text-anchor="middle" font-size="8"  fill="#718096">(vapor→agua)</text>
+      <!-- Condenser to feed pump -->
+      <line x1="740" y1="183" x2="700" y2="183" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <!-- Feed pump -->
+      <ellipse cx="685" cy="183" rx="18" ry="18" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+      <text x="685" y="187" text-anchor="middle" font-size="9" fill="white" font-weight="700">BBA</text>
+      <!-- Pump to drum -->
+      <line x1="685" y1="165" x2="685" y2="80" stroke="#2b6cb0" stroke-width="2.5"/>
+      <line x1="685" y1="80"  x2="665" y2="80"  stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <text x="680" y="130" font-size="8" fill="#2b6cb0" font-weight="600" writing-mode="vertical-rl" transform="rotate(180,680,130)">Retorno</text>
+
+      <!-- Incoming steam label (turbine) -->
+      <text x="693" y="62" font-size="9" fill="#63b3ed" font-weight="600">Vapor 284°C</text>
+
+      <!-- ─── SECOND DRUM (most RBMK have 2) ─── -->
+      <rect x="575" y="250" width="90" height="180" rx="10" fill="url(#gradDrum)" stroke="#718096" stroke-width="2" filter="url(#shadow)" opacity="0.85"/>
+      <text x="620" y="272" text-anchor="middle" font-size="10" fill="#2d3748" font-weight="700">SEPARADOR</text>
+      <text x="620" y="284" text-anchor="middle" font-size="10" fill="#2d3748" font-weight="700">Nº 2</text>
+      <rect x="578" y="298" width="84" height="86" rx="5" fill="url(#gradWater)" opacity="0.6"/>
+      <line x1="575" y1="340" x2="480" y2="340" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <text x="510" y="333" font-size="8" fill="#2b6cb0" font-weight="600">Agua→núcleo</text>
+      <!-- Steam from 2nd drum up to first -->
+      <line x1="575" y1="270" x2="535" y2="270" stroke="#63b3ed" stroke-width="2" stroke-dasharray="4,2"/>
+      <line x1="535" y1="270" x2="480" y2="190" stroke="#63b3ed" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arrowSteam)"/>
+
+      <!-- ─── LABELS & ANNOTATIONS ─── -->
+      <!-- Fuel channel callout -->
+      <line x1="160" y1="280" x2="100" y2="320" stroke="#c05621" stroke-width="1.5"/>
+      <rect x="36" y="308" width="64" height="28" rx="5" fill="#fffaf0" stroke="#ed8936" stroke-width="1.5"/>
+      <text x="68" y="320" text-anchor="middle" font-size="9" fill="#c05621" font-weight="700">CANAL</text>
+      <text x="68" y="330" text-anchor="middle" font-size="9" fill="#c05621" font-weight="700">COMB.</text>
+
+      <!-- Graphite block callout -->
+      <line x1="200" y1="350" x2="100" y2="390" stroke="#764ba2" stroke-width="1.5"/>
+      <rect x="36" y="378" width="64" height="28" rx="5" fill="#faf5ff" stroke="#9f7aea" stroke-width="1.5"/>
+      <text x="68" y="390" text-anchor="middle" font-size="9" fill="#553c9a" font-weight="700">BLOQUE</text>
+      <text x="68" y="400" text-anchor="middle" font-size="9" fill="#553c9a" font-weight="700">GRAFITO</text>
+
+      <!-- Shield callout -->
+      <rect x="560" y="458" width="80" height="28" rx="5" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+      <text x="600" y="470" text-anchor="middle" font-size="9" fill="#4a5568" font-weight="700">ESCUDO</text>
+      <text x="600" y="481" text-anchor="middle" font-size="9" fill="#4a5568" font-weight="700">BIOLÓGICO</text>
+      <line x1="560" y1="472" x2="490" y2="472" stroke="#a0aec0" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <!-- Neutron moderation annotation -->
+      <!-- Slow neutron paths -->
+      <g stroke="#f6e05e" stroke-width="1" fill="none" opacity="0.7" stroke-dasharray="3,2">
+        <path d="M220 260 C240 240 260 270 280 250 C300 230 310 260 330 250"/>
+        <path d="M230 310 C250 295 265 315 285 300 C305 285 320 310 340 295"/>
+        <path d="M240 370 C260 355 275 375 295 360 C315 345 330 370 350 360"/>
+      </g>
+
+      <!-- Neutron label -->
+      <rect x="370" y="300" width="80" height="24" rx="5" fill="rgba(246,224,94,0.15)" stroke="#d69e2e" stroke-width="1.5"/>
+      <text x="410" y="316" text-anchor="middle" font-size="9" fill="#975a16" font-weight="700">Neutrones termales</text>
+
+      <!-- ─── DIMENSION INDICATORS ─── -->
+      <!-- Height -->
+      <line x1="60" y1="140" x2="60" y2="498" stroke="#718096" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="55" y1="140" x2="65" y2="140" stroke="#718096" stroke-width="1.5"/>
+      <line x1="55" y1="498" x2="65" y2="498" stroke="#718096" stroke-width="1.5"/>
+      <text x="50" y="325" text-anchor="middle" font-size="9" fill="#718096" writing-mode="vertical-rl" transform="rotate(180,50,325)">7 m altura activa</text>
+
+      <!-- Width -->
+      <line x1="110" y1="545" x2="490" y2="545" stroke="#718096" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="110" y1="540" x2="110" y2="550" stroke="#718096" stroke-width="1.5"/>
+      <line x1="490" y1="540" x2="490" y2="550" stroke="#718096" stroke-width="1.5"/>
+      <text x="300" y="560" text-anchor="middle" font-size="9" fill="#718096">~12 m diámetro del núcleo</text>
+
+      <!-- ─── RADIATION SYMBOL ─── -->
+      <g transform="translate(300,320)" opacity="0.15">
+        <circle cx="0" cy="0" r="30" fill="none" stroke="#f6e05e" stroke-width="3"/>
+        <circle cx="0" cy="0" r="5" fill="#f6e05e"/>
+        <path d="M0,-18 A18,18 0 0,1 15.6,9 L8.7,5 A10,10 0 0,0 0,-10 Z" fill="#f6e05e"/>
+        <path d="M15.6,9 A18,18 0 0,1 -15.6,9 L-8.7,5 A10,10 0 0,0 8.7,5 Z" fill="#f6e05e"/>
+        <path d="M-15.6,9 A18,18 0 0,1 0,-18 L0,-10 A10,10 0 0,0 -8.7,5 Z" fill="#f6e05e"/>
+      </g>
+
+      <!-- Title box -->
+      <rect x="720" y="250" width="210" height="330" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <rect x="720" y="250" width="210" height="32"  rx="12" fill="#2d3748"/>
+      <text x="825" y="270" text-anchor="middle" font-size="10" fill="white" font-weight="700">LEYENDA DEL DIAGRAMA</text>
+
+      <!-- Legend items -->
+      <rect x="736" y="294" width="16" height="16" rx="3" fill="url(#gradFuel)"/>
+      <text x="760" y="306" font-size="9" fill="#4a5568" font-weight="500">Canal de combustible (UO₂)</text>
+
+      <rect x="736" y="318" width="16" height="16" rx="3" fill="url(#gradCore)"/>
+      <text x="760" y="330" font-size="9" fill="#4a5568" font-weight="500">Moderador de grafito</text>
+
+      <rect x="736" y="342" width="16" height="16" rx="3" fill="#1a365d"/>
+      <text x="760" y="354" font-size="9" fill="#4a5568" font-weight="500">Barras de control (B₄C)</text>
+
+      <rect x="736" y="366" width="16" height="16" rx="3" fill="url(#gradSteam)"/>
+      <text x="760" y="378" font-size="9" fill="#4a5568" font-weight="500">Vapor (mezcla agua/vapor)</text>
+
+      <rect x="736" y="390" width="16" height="16" rx="3" fill="url(#gradWater)"/>
+      <text x="760" y="402" font-size="9" fill="#4a5568" font-weight="500">Agua de alimentación</text>
+
+      <rect x="736" y="414" width="16" height="16" rx="3" fill="url(#gradDrum)"/>
+      <text x="760" y="426" font-size="9" fill="#4a5568" font-weight="500">Separadores de tambor</text>
+
+      <rect x="736" y="438" width="16" height="16" rx="3" fill="url(#gradTurbine)"/>
+      <text x="760" y="450" font-size="9" fill="#4a5568" font-weight="500">Turbina / Generador</text>
+
+      <rect x="736" y="462" width="16" height="16" rx="3" fill="url(#concrete)" stroke="#a0aec0" stroke-width="1"/>
+      <text x="760" y="474" font-size="9" fill="#4a5568" font-weight="500">Escudo biológico</text>
+
+      <g stroke="#f6e05e" stroke-width="1.5" stroke-dasharray="3,2">
+        <line x1="736" y1="494" x2="752" y2="494"/>
+      </g>
+      <text x="760" y="498" font-size="9" fill="#4a5568" font-weight="500">Trayectoria neutrones</text>
+
+      <!-- Cycle labels -->
+      <text x="825" y="530" text-anchor="middle" font-size="8" fill="#a0aec0" font-weight="600" letter-spacing="1">CICLO DE VAPOR DIRECTO</text>
+      <text x="825" y="542" text-anchor="middle" font-size="8" fill="#a0aec0">Agua → Vapor → Turbina → Condensador</text>
+      <text x="825" y="554" text-anchor="middle" font-size="8" fill="#a0aec0">→ Bomba → Tambor → Núcleo</text>
+
+      <!-- Credit -->
+      <text x="825" y="572" text-anchor="middle" font-size="8" fill="#cbd5e0">RBMK-1000 · Vista Esquemática</text>
+
+    </svg>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#c05621,#ed8936)"></div>Canales de combustible</div>
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#4a5568,#2d3748)"></div>Moderador de grafito</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1a365d"></div>Barras de control</div>
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#63b3ed,#bee3f8)"></div>Vapor de agua</div>
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2b6cb0,#1a365d)"></div>Agua de alimentación</div>
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#38a169,#276749)"></div>Turbina / Generador</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     FUNCIONAMIENTO PASO A PASO
+════════════════════════════════════════ -->
+<div id="funcionamiento" class="section" style="background:var(--gray1);">
+  <div class="sec-label">Proceso nuclear</div>
+  <h2 class="sec-title">¿Cómo Funciona el RBMK?</h2>
+  <p class="sec-lead">El reactor RBMK convierte la fisión nuclear del uranio en vapor de agua que acciona turbinas. El proceso se divide en 8 etapas fundamentales.</p>
+
+  <div class="steps">
+
+    <div class="step-card" style="border-top:4px solid #e53e3e;">
+      <div class="step-num" style="background:#fff5f5;color:#e53e3e;">①</div>
+      <h3>Fisión Nuclear del Uranio</h3>
+      <p>Un neutrón lento (térmico) impacta un núcleo de ²³⁵U. El núcleo se vuelve inestable y se divide en dos fragmentos más ligeros (Kr, Ba, etc.) liberando <strong>2–3 neutrones nuevos</strong> y ~200 MeV de energía por fisión.</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #dd6b20;">
+      <div class="step-num" style="background:#fffaf0;color:#dd6b20;">②</div>
+      <h3>Moderación por Grafito</h3>
+      <p>Los neutrones rápidos emitidos (~2 MeV) chocan contra los <strong>bloques de grafito</strong> que rodean cada canal. El grafito reduce (modera) su velocidad hasta ~0.025 eV (neutrones térmicos), haciéndolos más eficaces para nuevas fisiones.</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #d69e2e;">
+      <div class="step-num" style="background:#fffff0;color:#d69e2e;">③</div>
+      <h3>Reacción en Cadena Controlada</h3>
+      <p>Los neutrones termalizados provocan nuevas fisiones en el combustible adyacente. Las <strong>barras de control</strong> (carburo de boro + grafito) absorben neutrones en exceso manteniendo el factor de multiplicación k ≈ 1 (criticidad).</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #276749;">
+      <div class="step-num" style="background:#f0fff4;color:#276749;">④</div>
+      <h3>Generación de Calor</h3>
+      <p>La energía cinética de los fragmentos de fisión calienta las varillas de combustible de UO₂ hasta ~700 °C. El calor se transfiere al <strong>agua desionizada</strong> que fluye a presión por los tubos de zircaloy que rodean cada varilla.</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #2c7a7b;">
+      <div class="step-num" style="background:#e6fffa;color:#2c7a7b;">⑤</div>
+      <h3>Evaporación del Agua</h3>
+      <p>El agua circula a ~70 bares de presión. Al absorber calor, parte se convierte en vapor saturado. La mezcla bifásica agua/vapor sube por cada canal hacia los colectores superiores y las tuberías de cabecera.</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #2b6cb0;">
+      <div class="step-num" style="background:#ebf8ff;color:#2b6cb0;">⑥</div>
+      <h3>Separadores de Tambor</h3>
+      <p>La mezcla entra en los <strong>2 tambores separadores</strong> (grandes cilindros horizontales) donde la gravedad y ciclones internos separan el vapor del agua. El agua retorna al núcleo por bombas; el vapor seco pasa a las turbinas.</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #434190;">
+      <div class="step-num" style="background:#ebf4ff;color:#434190;">⑦</div>
+      <h3>Generación de Electricidad</h3>
+      <p>El vapor saturado (~284 °C, ~70 bar) impulsa las <strong>2 turbinas de 500 MW</strong>, cada una acoplada a un generador. La energía mecánica rotatoria se convierte en electricidad alterna de 16.5 kV que se eleva a 750 kV para la red.</p>
+    </div>
+
+    <div class="step-card" style="border-top:4px solid #718096;">
+      <div class="step-num" style="background:#f7f8fa;color:#718096;">⑧</div>
+      <h3>Condensación y Recirculación</h3>
+      <p>El vapor agotado de la turbina pasa al <strong>condensador</strong> (refrigerado por agua de río o torres de enfriamiento) donde vuelve a ser agua líquida. Las bombas de alimentación lo devuelven a presión a los tambores, cerrando el ciclo.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     DIAGRAMA DETALLADO DEL CANAL
+════════════════════════════════════════ -->
+<div id="canal" class="section">
+  <div class="sec-label">Detalle interno</div>
+  <h2 class="sec-title">Canal de Combustible — Anatomía</h2>
+  <p class="sec-lead">Cada uno de los 1 693 canales del reactor RBMK-1000 contiene un conjunto de varillas de combustible de UO₂ dentro de un tubo de zircaloy rodeado por grafito.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 860 420" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <linearGradient id="gcZr" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#a0aec0"/>
+          <stop offset="50%" style="stop-color:#e2e8f0"/>
+          <stop offset="100%" style="stop-color:#a0aec0"/>
+        </linearGradient>
+        <linearGradient id="gcUO2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#c05621"/>
+          <stop offset="50%" style="stop-color:#fbd38d"/>
+          <stop offset="100%" style="stop-color:#c05621"/>
+        </linearGradient>
+        <linearGradient id="gcGraph" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#4a5568"/>
+          <stop offset="50%" style="stop-color:#718096"/>
+          <stop offset="100%" style="stop-color:#4a5568"/>
+        </linearGradient>
+        <linearGradient id="gcWater" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#63b3ed;stop-opacity:0.3"/>
+          <stop offset="50%" style="stop-color:#bee3f8;stop-opacity:0.5"/>
+          <stop offset="100%" style="stop-color:#63b3ed;stop-opacity:0.3"/>
+        </linearGradient>
+        <radialGradient id="gcCore" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#fbd38d"/>
+          <stop offset="60%" style="stop-color:#c05621"/>
+          <stop offset="100%" style="stop-color:#7b341e"/>
+        </radialGradient>
+      </defs>
+
+      <rect width="860" height="420" fill="#f7f8fa"/>
+
+      <!-- ── SIDE VIEW (longitudinal cross section) ── -->
+      <text x="200" y="25" text-anchor="middle" font-size="13" font-weight="700" fill="#2d3748">Vista Longitudinal del Canal</text>
+
+      <!-- Graphite column outer -->
+      <rect x="60" y="40" width="280" height="320" rx="4" fill="url(#gcGraph)" opacity="0.85"/>
+      <text x="200" y="58" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)" font-weight="600">BLOQUE DE GRAFITO</text>
+
+      <!-- Pressure tube (Zircaloy-2) -->
+      <rect x="115" y="50" width="170" height="300" rx="3" fill="url(#gcZr)"/>
+      <text x="200" y="66" text-anchor="middle" font-size="8" fill="#2d3748" font-weight="600">TUBO DE PRESIÓN (Zircaloy-2, Ø88mm)</text>
+
+      <!-- Coolant water inside pressure tube -->
+      <rect x="123" y="58" width="154" height="284" rx="2" fill="url(#gcWater)"/>
+
+      <!-- Fuel assembly (18 rods) — represented as bundle -->
+      <!-- Center rod -->
+      <rect x="191" y="65" width="18" height="270" rx="3" fill="url(#gcUO2)" filter="url(#shadow)"/>
+      <!-- Surrounding rods (simplified, show 8) -->
+      <rect x="163" y="65" width="12" height="270" rx="2" fill="url(#gcUO2)" opacity="0.9"/>
+      <rect x="180" y="65" width="12" height="270" rx="2" fill="url(#gcUO2)" opacity="0.9"/>
+      <rect x="208" y="65" width="12" height="270" rx="2" fill="url(#gcUO2)" opacity="0.9"/>
+      <rect x="225" y="65" width="12" height="270" rx="2" fill="url(#gcUO2)" opacity="0.9"/>
+      <rect x="155" y="65" width="8"  height="270" rx="2" fill="url(#gcUO2)" opacity="0.8"/>
+      <rect x="238" y="65" width="8"  height="270" rx="2" fill="url(#gcUO2)" opacity="0.8"/>
+
+      <!-- Spacer grids -->
+      <rect x="123" y="128" width="154" height="6" rx="1" fill="#718096" opacity="0.6"/>
+      <rect x="123" y="198" width="154" height="6" rx="1" fill="#718096" opacity="0.6"/>
+      <rect x="123" y="268" width="154" height="6" rx="1" fill="#718096" opacity="0.6"/>
+      <text x="285" y="133" font-size="8" fill="#718096" font-weight="500">Espaciador</text>
+      <text x="285" y="203" font-size="8" fill="#718096" font-weight="500">Espaciador</text>
+      <text x="285" y="273" font-size="8" fill="#718096" font-weight="500">Espaciador</text>
+
+      <!-- Water flow arrows -->
+      <g stroke="#2b6cb0" stroke-width="1.5" fill="none" marker-end="url(#arrowBlue)" opacity="0.7">
+        <line x1="130" y1="300" x2="130" y2="80"/>
+        <line x1="270" y1="300" x2="270" y2="80"/>
+      </g>
+      <text x="128" y="320" font-size="7" fill="#2b6cb0" text-anchor="middle" font-weight="600">↑ FLUJO</text>
+      <text x="128" y="330" font-size="7" fill="#2b6cb0" text-anchor="middle">REFRIGERANTE</text>
+
+      <!-- Labels left -->
+      <line x1="60" y1="200" x2="42" y2="200" stroke="#4a5568" stroke-width="1"/>
+      <text x="38" y="198" font-size="8" fill="#4a5568" text-anchor="end" font-weight="600">Grafito</text>
+      <text x="38" y="208" font-size="7" fill="#718096" text-anchor="end">moderador</text>
+
+      <line x1="115" y1="155" x2="97" y2="155" stroke="#718096" stroke-width="1"/>
+      <text x="93" y="153" font-size="8" fill="#718096" text-anchor="end">Tubo de</text>
+      <text x="93" y="163" font-size="7" fill="#718096" text-anchor="end">presión Zr</text>
+
+      <line x1="155" y1="170" x2="137" y2="170" stroke="#c05621" stroke-width="1"/>
+      <text x="133" y="168" font-size="8" fill="#c05621" text-anchor="end" font-weight="600">Varillas</text>
+      <text x="133" y="178" font-size="7" fill="#c05621" text-anchor="end">de UO₂</text>
+
+      <!-- Dimensions -->
+      <line x1="350" y1="50"  x2="350" y2="350" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="345" y1="50"  x2="355" y2="50"  stroke="#cbd5e0" stroke-width="1.5"/>
+      <line x1="345" y1="350" x2="355" y2="350" stroke="#cbd5e0" stroke-width="1.5"/>
+      <text x="362" y="205" font-size="9" fill="#718096" font-weight="500" writing-mode="vertical-rl">7 m — longitud activa</text>
+
+      <!-- ── CROSS SECTION VIEW ── -->
+      <text x="620" y="25" text-anchor="middle" font-size="13" font-weight="700" fill="#2d3748">Sección Transversal (×8 aumentado)</text>
+
+      <!-- Graphite block -->
+      <rect x="470" y="40" width="300" height="360" rx="6" fill="url(#gcGraph)" opacity="0.85"/>
+      <text x="620" y="60" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.6)" font-weight="600">BLOQUE GRAFITO 250×250mm</text>
+
+      <!-- Gas gap (He+N₂) -->
+      <circle cx="620" cy="220" r="90" fill="#fefcbf" opacity="0.3" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="700" y="135" font-size="8" fill="#975a16" font-weight="600">Espacio gaseoso</text>
+      <text x="700" y="147" font-size="8" fill="#975a16">(He + N₂)</text>
+      <line x1="698" y1="150" x2="680" y2="165" stroke="#d69e2e" stroke-width="1"/>
+
+      <!-- Pressure tube outer -->
+      <circle cx="620" cy="220" r="76" fill="url(#gcZr)" stroke="#a0aec0" stroke-width="2"/>
+
+      <!-- Pressure tube inner (water) -->
+      <circle cx="620" cy="220" r="64" fill="url(#gcWater)" stroke="#63b3ed" stroke-width="1"/>
+
+      <!-- Fuel rods arranged in ring + center -->
+      <!-- Center rod -->
+      <circle cx="620" cy="220" r="12" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <!-- Inner ring (6 rods) -->
+      <circle cx="620" cy="193" r="9" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <circle cx="644" cy="207" r="9" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <circle cx="644" cy="233" r="9" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <circle cx="620" cy="247" r="9" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <circle cx="596" cy="233" r="9" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <circle cx="596" cy="207" r="9" fill="url(#gcCore)" stroke="#c05621" stroke-width="1.5"/>
+      <!-- Outer ring (12 rods) -->
+      <circle cx="620" cy="172" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="645" cy="179" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="662" cy="199" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="662" cy="241" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="645" cy="261" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="620" cy="268" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="595" cy="261" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="578" cy="241" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="578" cy="199" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <circle cx="595" cy="179" r="7" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+
+      <!-- Dimension labels for cross section -->
+      <line x1="620" y1="220" x2="696" y2="220" stroke="#718096" stroke-width="1"/>
+      <line x1="696" y1="215" x2="696" y2="225" stroke="#718096" stroke-width="1.5"/>
+      <text x="698" y="220" font-size="8" fill="#718096" dominant-baseline="middle">Ø 88mm</text>
+
+      <!-- Legend cross section -->
+      <circle cx="490" cy="350" r="6" fill="url(#gcCore)" stroke="#c05621" stroke-width="1"/>
+      <text x="500" y="354" font-size="8" fill="#4a5568">Varilla UO₂ (×18 por canal)</text>
+
+      <circle cx="490" cy="368" r="8" fill="none" stroke="url(#gcZr)" stroke-width="4"/>
+      <text x="502" y="372" font-size="8" fill="#4a5568">Tubo de presión Zircaloy</text>
+
+    </svg>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     COMPONENTES
+════════════════════════════════════════ -->
+<div id="componentes" class="section" style="background:var(--gray1);">
+  <div class="sec-label">Arquitectura del sistema</div>
+  <h2 class="sec-title">Componentes Principales</h2>
+  <p class="sec-lead">El RBMK está formado por subsistemas especializados que trabajan en conjunto para generar electricidad de forma continua y segura.</p>
+
+  <div class="comp-grid">
+
+    <div class="comp-card" style="border-left:4px solid #553c9a;">
+      <span class="comp-icon">🧱</span>
+      <h3>Núcleo Moderador de Grafito</h3>
+      <p>Cilindro de 12 m de diámetro y 7 m de altura formado por ~2 500 toneladas de bloques de grafito de alta pureza. Los bloques tienen canales perforados que alojan los tubos de combustible y las barras de control. El grafito modera los neutrones sin absorberlos excesivamente. Opera a ~700 °C.</p>
+      <span class="comp-tag" style="background:#faf5ff;color:#553c9a;">Moderador</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #c05621;">
+      <span class="comp-icon">☢️</span>
+      <h3>Canales de Combustible (1 693)</h3>
+      <p>Tubos de aleación Zircaloy-2 (Ø 88 mm, 8 mm espesor) que atraviesan verticalmente el núcleo. Cada canal alberga dos conjuntos de 18 varillas de combustible de UO₂ sinterizado (pellets de 11.5 mm de diámetro). El agua refrigerante fluye a presión dentro del tubo a ~284 °C.</p>
+      <span class="comp-tag" style="background:#fffaf0;color:#c05621;">Zona activa</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #1a365d;">
+      <span class="comp-icon">⚫</span>
+      <h3>Barras de Control (211 totales)</h3>
+      <p>Barras de carburo de boro (B₄C) de ~1 m de longitud con extensiones de grafito. Se insertan desde arriba por mecanismos eléctricos. En condiciones normales, 15–20 barras permanecen dentro del núcleo. Su posición determina la potencia del reactor. Velocidad de inserción: ~0.4 m/s (punto crítico de Chernóbil).</p>
+      <span class="comp-tag" style="background:#ebf8ff;color:#1a365d;">Control de reactividad</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #2b6cb0;">
+      <span class="comp-icon">🔵</span>
+      <h3>Tambores Separadores de Vapor (×2)</h3>
+      <p>Cilindros horizontales de acero de 20 m de longitud y 2.8 m de diámetro. Separan la mezcla agua/vapor procedente del núcleo mediante gravedad y separadores ciclónicos internos. El vapor seco va a las turbinas; el agua recircula al núcleo por 8 grandes bombas de circulación (MCP).</p>
+      <span class="comp-tag" style="background:#ebf8ff;color:#2b6cb0;">Circuito primario</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #276749;">
+      <span class="comp-icon">⚙️</span>
+      <h3>Turbinas de Vapor (×2 por unidad)</h3>
+      <p>Turbinas de condensación tipo K-500-65/3000 de 500 MW cada una. Opocidades a 3 000 rpm / 50 Hz, accionadas por vapor saturado a 70 bar y 284 °C. Cada turbina mueve un generador de 500 MW eléctricos. El vapor se condensa y recircula cerrando el ciclo termodinámico de Rankine.</p>
+      <span class="comp-tag" style="background:#f0fff4;color:#276749;">Conversión energética</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #d69e2e;">
+      <span class="comp-icon">🏗️</span>
+      <h3>Escudo Biológico y Estructura</h3>
+      <p>Paredes de hormigón reforzado de hasta 5 m de espesor mezclado con acero y barita para absorber radiación gamma y neutrones. La "placa Elena" es una losa de acero-hormigón de 3 m que cubre el techo del reactor. El conjunto pesa ~20 000 toneladas. A diferencia de reactores occidentales, el RBMK no tiene cúpula de contención primaria.</p>
+      <span class="comp-tag" style="background:#fffff0;color:#d69e2e;">Seguridad pasiva</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #e53e3e;">
+      <span class="comp-icon">💧</span>
+      <h3>Sistema de Emergencia de Refrigeración (ECCS)</h3>
+      <p>Sistema pasivo que inyecta agua fría al núcleo en caso de accidente por pérdida de refrigerante (LOCA). Consiste en tanques presurizados, bombas de emergencia y válvulas de alivio. En Chernóbil, el ECCS fue <strong>desactivado deliberadamente</strong> durante la prueba del 26 de abril de 1986.</p>
+      <span class="comp-tag" style="background:#fff5f5;color:#e53e3e;">Seguridad activa</span>
+    </div>
+
+    <div class="comp-card" style="border-left:4px solid #2c7a7b;">
+      <span class="comp-icon">📡</span>
+      <h3>Sistema de Instrumentación y Control (I&C)</h3>
+      <p>Más de 1 600 sensores de temperatura, flujo y neutrones distribuidos por todo el núcleo. El sistema SKALA analiza datos en tiempo real. La sala de control gestiona potencia, flujo de refrigerante y posición de barras. En los reactores RBMK-1000 modernizados se añadió el sistema de protección de emergencia mejorado (AZ-5 revisado).</p>
+      <span class="comp-tag" style="background:#e6fffa;color:#2c7a7b;">Monitorización</span>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     COMBUSTIBLE
+════════════════════════════════════════ -->
+<div id="combustible" class="section">
+  <div class="sec-label">Material fisionable</div>
+  <h2 class="sec-title">Combustible Nuclear: Dióxido de Uranio</h2>
+  <p class="sec-lead">El RBMK usa combustible de UO₂ ligeramente enriquecido en ²³⁵U. Su diseño de canal permite la <em>recarga de combustible en caliente</em>, sin detener el reactor.</p>
+
+  <div class="fuel-layout">
+    <!-- Left: fuel assembly diagram -->
+    <div>
+      <div class="fuel-diagram">
+        <svg viewBox="0 0 400 460" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+          <defs>
+            <linearGradient id="fgPellet" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#fbd38d"/>
+              <stop offset="60%" style="stop-color:#ed8936"/>
+              <stop offset="100%" style="stop-color:#c05621"/>
+            </linearGradient>
+            <linearGradient id="fgClad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#a0aec0"/>
+              <stop offset="40%" style="stop-color:#e2e8f0"/>
+              <stop offset="100%" style="stop-color:#a0aec0"/>
+            </linearGradient>
+          </defs>
+
+          <rect width="400" height="460" fill="#f7f8fa" rx="12"/>
+
+          <!-- Title -->
+          <text x="200" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#2d3748">Conjunto de Combustible RBMK</text>
+          <text x="200" y="40" text-anchor="middle" font-size="9" fill="#718096">2 ensembles × 18 varillas = 36 varillas/canal</text>
+
+          <!-- Assembly frame top fitting -->
+          <rect x="140" y="52" width="120" height="18" rx="5" fill="#718096"/>
+          <text x="200" y="64" text-anchor="middle" font-size="9" fill="#fff" font-weight="600">Accesorio Superior</text>
+
+          <!-- Tie rod center -->
+          <rect x="196" y="70" width="8" height="300" rx="2" fill="#a0aec0"/>
+
+          <!-- 18 fuel rods — show 6 visible -->
+          <!-- Left column -->
+          <rect x="152" y="72" width="14" height="296" rx="4" fill="url(#fgClad)"/>
+          <rect x="154" y="76" width="10" height="288" rx="2" fill="url(#fgPellet)"/>
+          <!-- Pellet segments -->
+          <g fill="rgba(0,0,0,0.08)">
+            <rect x="154" y="100" width="10" height="1.5"/>
+            <rect x="154" y="116" width="10" height="1.5"/>
+            <rect x="154" y="132" width="10" height="1.5"/>
+            <rect x="154" y="148" width="10" height="1.5"/>
+            <rect x="154" y="164" width="10" height="1.5"/>
+            <rect x="154" y="180" width="10" height="1.5"/>
+            <rect x="154" y="196" width="10" height="1.5"/>
+            <rect x="154" y="212" width="10" height="1.5"/>
+            <rect x="154" y="228" width="10" height="1.5"/>
+            <rect x="154" y="244" width="10" height="1.5"/>
+            <rect x="154" y="260" width="10" height="1.5"/>
+            <rect x="154" y="276" width="10" height="1.5"/>
+            <rect x="154" y="292" width="10" height="1.5"/>
+            <rect x="154" y="308" width="10" height="1.5"/>
+            <rect x="154" y="324" width="10" height="1.5"/>
+            <rect x="154" y="340" width="10" height="1.5"/>
+          </g>
+
+          <!-- right column -->
+          <rect x="170" y="72" width="14" height="296" rx="4" fill="url(#fgClad)"/>
+          <rect x="172" y="76" width="10" height="288" rx="2" fill="url(#fgPellet)"/>
+
+          <rect x="186" y="72" width="14" height="296" rx="4" fill="url(#fgClad)"/>
+          <rect x="188" y="76" width="10" height="288" rx="2" fill="url(#fgPellet)"/>
+
+          <rect x="208" y="72" width="14" height="296" rx="4" fill="url(#fgClad)"/>
+          <rect x="210" y="76" width="10" height="288" rx="2" fill="url(#fgPellet)"/>
+
+          <rect x="224" y="72" width="14" height="296" rx="4" fill="url(#fgClad)"/>
+          <rect x="226" y="76" width="10" height="288" rx="2" fill="url(#fgPellet)"/>
+
+          <rect x="240" y="72" width="14" height="296" rx="4" fill="url(#fgClad)"/>
+          <rect x="242" y="76" width="10" height="288" rx="2" fill="url(#fgPellet)"/>
+
+          <!-- Spacer grids -->
+          <rect x="148" y="152" width="116" height="7" rx="2" fill="#718096" opacity="0.7"/>
+          <rect x="148" y="230" width="116" height="7" rx="2" fill="#718096" opacity="0.7"/>
+          <rect x="148" y="308" width="116" height="7" rx="2" fill="#718096" opacity="0.7"/>
+          <text x="272" y="157" font-size="8" fill="#718096">Espaciador</text>
+          <text x="272" y="235" font-size="8" fill="#718096">Espaciador</text>
+          <text x="272" y="313" font-size="8" fill="#718096">Espaciador</text>
+
+          <!-- Bottom fitting -->
+          <rect x="140" y="368" width="120" height="18" rx="5" fill="#718096"/>
+          <text x="200" y="381" text-anchor="middle" font-size="9" fill="#fff" font-weight="600">Accesorio Inferior</text>
+
+          <!-- Callout pellet detail -->
+          <circle cx="161" cy="200" r="1" fill="#c05621"/>
+          <line x1="161" y1="200" x2="100" y2="250" stroke="#c05621" stroke-width="1"/>
+          <rect x="20" y="238" width="80" height="36" rx="6" fill="#fffaf0" stroke="#ed8936" stroke-width="1.5"/>
+          <text x="60" y="252" text-anchor="middle" font-size="8" fill="#c05621" font-weight="700">PELLET UO₂</text>
+          <text x="60" y="263" text-anchor="middle" font-size="7" fill="#c05621">Ø11.5mm×15mm</text>
+          <text x="60" y="273" text-anchor="middle" font-size="7" fill="#c05621">Enriquecimiento:</text>
+
+          <!-- Clad callout -->
+          <line x1="152" y1="140" x2="120" y2="170" stroke="#718096" stroke-width="1"/>
+          <rect x="26" y="158" width="94" height="28" rx="5" fill="#f7f8fa" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="73" y="170" text-anchor="middle" font-size="8" fill="#4a5568" font-weight="700">Vaina Zircaloy-2</text>
+          <text x="73" y="181" text-anchor="middle" font-size="7" fill="#718096">Ø13.5mm, e=0.9mm</text>
+
+          <!-- Dimensions -->
+          <line x1="268" y1="72"  x2="268" y2="368" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="263" y1="72"  x2="273" y2="72"  stroke="#cbd5e0" stroke-width="1.5"/>
+          <line x1="263" y1="368" x2="273" y2="368" stroke="#cbd5e0" stroke-width="1.5"/>
+          <text x="310" y="225" text-anchor="middle" font-size="9" fill="#718096" font-weight="500" writing-mode="vertical-rl">3.4 m por ensemble</text>
+
+          <!-- Enrichment gauge -->
+          <text x="200" y="412" text-anchor="middle" font-size="10" font-weight="700" fill="#2d3748">Enriquecimiento del combustible</text>
+          <!-- Bar -->
+          <rect x="80" y="422" width="240" height="14" rx="7" fill="#e2e8f0"/>
+          <rect x="80" y="422" width="48"  height="14" rx="7" fill="#ed8936"/>
+          <text x="80"  y="450" font-size="8" fill="#718096">0%</text>
+          <text x="180" y="450" font-size="8" fill="#e53e3e" font-weight="700">▲ 2% orig.</text>
+          <text x="308" y="450" font-size="7" fill="#718096">Uranio natural (0.71%)</text>
+          <rect x="80" y="422" width="68"  height="14" rx="7" fill="none" stroke="#c05621" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <text x="148" y="455" font-size="7" fill="#c05621">2.8% mod.</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Right: fuel data -->
+    <div>
+      <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:20px;color:var(--gray5);">Composición del Combustible</h3>
+
+      <div class="isotope-grid" style="margin-bottom:28px;">
+        <div class="iso-card">
+          <div class="iso-symbol" style="color:#e53e3e;">²³⁵U</div>
+          <div class="iso-name">Uranio-235 (fisionable)</div>
+          <div class="iso-pct" style="color:#e53e3e;">2.0–2.8%</div>
+        </div>
+        <div class="iso-card">
+          <div class="iso-symbol" style="color:#718096;">²³⁸U</div>
+          <div class="iso-name">Uranio-238 (fértil)</div>
+          <div class="iso-pct" style="color:#718096;">~97.2%</div>
+        </div>
+        <div class="iso-card">
+          <div class="iso-symbol" style="color:#276749;">O₂</div>
+          <div class="iso-name">Oxígeno (óxido)</div>
+          <div class="iso-pct" style="color:#276749;">~13% masa</div>
+        </div>
+        <div class="iso-card">
+          <div class="iso-symbol" style="color:#434190;">²³⁹Pu</div>
+          <div class="iso-name">Plutonio-239 (generado)</div>
+          <div class="iso-pct" style="color:#434190;">acumula</div>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#ed8936;"></div>
+          <h4>Extracción y enriquecimiento</h4>
+          <p>El mineral de uranio se extrae, se convierte en UF₆ y se enriquece en centrifugadoras. El ²³⁵U pasa de 0.71% natural a 2.0–2.8% enriquecido.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#c05621;"></div>
+          <h4>Fabricación de pellets</h4>
+          <p>El UF₆ se convierte en polvo de UO₂, se prensa en pellets cerámicos de Ø11.5mm × 15mm y se sinteriza a 1750 °C para maximizar densidad y resistencia.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#718096;"></div>
+          <h4>Ensamblaje de varillas</h4>
+          <p>Los pellets se apilan dentro de vainas de Zircaloy-2, se presurizan con helio y se sellan herméticamente. 18 varillas forman un ensamblaje, 2 ensemblajes por canal.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#276749;"></div>
+          <h4>Recarga en caliente (característica RBMK)</h4>
+          <p>La máquina de recarga opera con el reactor a plena potencia. Retira los canales gastados e inserta combustible fresco sin parar el reactor — ventaja operativa pero riesgo de seguridad.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#2b6cb0;"></div>
+          <h4>Quemado y ciclo</h4>
+          <p>Cada carga permanece ~3 años. El ²³⁵U se fisiona y el ²³⁸U captura neutrones generando ²³⁹Pu, que también contribuye a la fisión. Burnup: ~20–25 GWd/tU.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#e53e3e;"></div>
+          <h4>Gestión de residuos</h4>
+          <p>El combustible gastado, altamente radiactivo (Cs-137, Sr-90, productos de fisión), se almacena en piscinas de agua durante décadas antes de su disposición final en repositorios geológicos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     CIRCUITO DE AGUA
+════════════════════════════════════════ -->
+<div id="agua" class="section" style="background:var(--gray1);">
+  <div class="sec-label">Termodinámica</div>
+  <h2 class="sec-title">Circuito de Agua y Ciclo de Vapor</h2>
+  <p class="sec-lead">El RBMK usa un <strong>ciclo de vapor directo</strong>: el agua que enfría el núcleo se convierte directamente en el vapor que mueve las turbinas (sin intercambiador de calor secundario).</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <linearGradient id="wgCore" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#553c9a"/>
+          <stop offset="100%" style="stop-color:#2d3748"/>
+        </linearGradient>
+        <linearGradient id="wgDrum" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#bee3f8"/>
+          <stop offset="50%" style="stop-color:#63b3ed"/>
+          <stop offset="100%" style="stop-color:#2b6cb0"/>
+        </linearGradient>
+      </defs>
+
+      <rect width="860" height="340" fill="#f7f8fa"/>
+
+      <!-- ─ NUCLEAR CORE ─ -->
+      <rect x="30" y="80" width="130" height="180" rx="10" fill="url(#wgCore)" filter="url(#shadow)"/>
+      <text x="95" y="110" text-anchor="middle" font-size="11" fill="#e2e8f0" font-weight="700">NÚCLEO</text>
+      <text x="95" y="125" text-anchor="middle" font-size="10" fill="#e2e8f0" font-weight="700">NUCLEAR</text>
+      <!-- Fuel channels in core -->
+      <g opacity="0.7">
+        <rect x="52" y="135" width="10" height="110" rx="2" fill="#ed8936"/>
+        <rect x="68" y="135" width="10" height="110" rx="2" fill="#ed8936"/>
+        <rect x="84" y="135" width="10" height="110" rx="2" fill="#ed8936"/>
+        <rect x="100" y="135" width="10" height="110" rx="2" fill="#ed8936"/>
+        <rect x="116" y="135" width="10" height="110" rx="2" fill="#ed8936"/>
+        <rect x="132" y="135" width="10" height="110" rx="2" fill="#ed8936"/>
+      </g>
+      <text x="95" y="262" text-anchor="middle" font-size="8" fill="#bee3f8">~284°C / 70 bar</text>
+      <text x="95" y="273" text-anchor="middle" font-size="8" fill="#bee3f8">Mezcla agua/vapor</text>
+
+      <!-- Arrow core → drum -->
+      <path d="M160 120 L220 120" stroke="#63b3ed" stroke-width="3" fill="none" marker-end="url(#arrowSteam)"/>
+      <text x="190" y="112" text-anchor="middle" font-size="8" fill="#2b6cb0" font-weight="600">Mezcla ↑ 70 bar</text>
+
+      <!-- ─ STEAM DRUM ─ -->
+      <rect x="222" y="60" width="120" height="220" rx="10" fill="url(#wgDrum)" filter="url(#shadow)"/>
+      <text x="282" y="84" text-anchor="middle" font-size="11" fill="#1a365d" font-weight="700">TAMBOR</text>
+      <text x="282" y="98" text-anchor="middle" font-size="11" fill="#1a365d" font-weight="700">SEPARADOR</text>
+      <!-- Water level line -->
+      <line x1="225" y1="175" x2="339" y2="175" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <!-- Bubbles rising -->
+      <circle cx="255" cy="155" r="5" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="270" cy="140" r="3" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="285" cy="150" r="4" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="300" cy="138" r="5" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="315" cy="148" r="3" fill="rgba(255,255,255,0.6)"/>
+      <text x="282" y="130" text-anchor="middle" font-size="8" fill="#1a365d" font-weight="600">VAPOR SECO</text>
+      <text x="282" y="200" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">AGUA</text>
+      <text x="282" y="212" text-anchor="middle" font-size="8" fill="#fff">recirculación</text>
+      <text x="282" y="268" text-anchor="middle" font-size="8" fill="#1a365d">70 bar, 284°C</text>
+
+      <!-- Arrow drum → turbine (steam, top) -->
+      <path d="M342 95 L400 95" stroke="#63b3ed" stroke-width="3" fill="none" marker-end="url(#arrowSteam)"/>
+      <text x="371" y="87" text-anchor="middle" font-size="8" fill="#2b6cb0" font-weight="600">Vapor seco</text>
+
+      <!-- ─ TURBINE ─ -->
+      <g>
+        <ellipse cx="445" cy="100" rx="48" ry="50" fill="#276749" stroke="#2f855a" stroke-width="2"/>
+        <ellipse cx="445" cy="100" rx="34" ry="36" fill="#38a169" opacity="0.7"/>
+        <!-- Blades -->
+        <g stroke="#276749" stroke-width="1.5" fill="none" transform="translate(445,100)">
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(0)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(40)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(80)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(120)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(160)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(200)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(240)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(280)"/>
+          <line x1="0" y1="-36" x2="0" y2="-16" transform="rotate(320)"/>
+        </g>
+        <circle cx="445" cy="100" r="8" fill="#fff" stroke="#276749" stroke-width="2"/>
+        <text x="445" y="85"  text-anchor="middle" font-size="10" fill="white" font-weight="700">TURBINA</text>
+        <text x="445" y="115" text-anchor="middle" font-size="9"  fill="#c6f6d5">500 MW</text>
+      </g>
+
+      <!-- Shaft -->
+      <line x1="493" y1="100" x2="530" y2="100" stroke="#276749" stroke-width="4"/>
+
+      <!-- ─ GENERATOR ─ -->
+      <rect x="530" y="68" width="90" height="64" rx="10" fill="#2f855a" stroke="#276749" stroke-width="2"/>
+      <text x="575" y="95"  text-anchor="middle" font-size="11" fill="white" font-weight="700">GEN.</text>
+      <text x="575" y="110" text-anchor="middle" font-size="9"  fill="#c6f6d5">⚡ 1 000 MW</text>
+      <text x="575" y="122" text-anchor="middle" font-size="8"  fill="#c6f6d5">16.5 kV / 50Hz</text>
+
+      <!-- Transformer -->
+      <rect x="640" y="74" width="70" height="52" rx="8" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+      <text x="675" y="97"  text-anchor="middle" font-size="9" fill="#744210" font-weight="700">TRANSF.</text>
+      <text x="675" y="109" text-anchor="middle" font-size="8" fill="#744210">750 kV</text>
+      <!-- Power line -->
+      <line x1="710" y1="100" x2="800" y2="100" stroke="#d69e2e" stroke-width="2.5"/>
+      <line x1="780" y1="90"  x2="780" y2="100" stroke="#d69e2e" stroke-width="1.5"/>
+      <line x1="790" y1="90"  x2="790" y2="100" stroke="#d69e2e" stroke-width="1.5"/>
+      <line x1="800" y1="90"  x2="800" y2="100" stroke="#d69e2e" stroke-width="1.5"/>
+      <text x="780" y="80"  text-anchor="middle" font-size="8" fill="#744210" font-weight="600">RED</text>
+      <text x="780" y="70"  text-anchor="middle" font-size="8" fill="#744210">ELÉCTRICA</text>
+
+      <!-- Arrow turbine → condenser (exhaust steam) -->
+      <path d="M445 150 L445 205" stroke="#a0aec0" stroke-width="2.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arrowGreen)"/>
+      <text x="458" y="185" font-size="8" fill="#718096" font-weight="600">Vapor</text>
+      <text x="458" y="195" font-size="8" fill="#718096">agotado</text>
+
+      <!-- ─ CONDENSER ─ -->
+      <rect x="370" y="210" width="150" height="70" rx="10" fill="#e2e8f0" stroke="#a0aec0" stroke-width="2"/>
+      <text x="445" y="235" text-anchor="middle" font-size="11" fill="#4a5568" font-weight="700">CONDENSADOR</text>
+      <text x="445" y="250" text-anchor="middle" font-size="9"  fill="#718096">Vapor → Agua líquida</text>
+      <text x="445" y="263" text-anchor="middle" font-size="8"  fill="#718096">~30°C / 0.04 bar</text>
+      <!-- Cooling water in/out -->
+      <line x1="370" y1="245" x2="330" y2="245" stroke="#4299e1" stroke-width="2" marker-end="url(#arrowBlue)"/>
+      <text x="315" y="240" font-size="8" fill="#4299e1" text-anchor="end" font-weight="600">Agua</text>
+      <text x="315" y="250" font-size="8" fill="#4299e1" text-anchor="end">fría río</text>
+      <line x1="330" y1="265" x2="370" y2="265" stroke="#e53e3e" stroke-width="2"/>
+      <text x="315" y="269" font-size="8" fill="#e53e3e" text-anchor="end">caliente</text>
+
+      <!-- Arrow condenser → feed pump -->
+      <path d="M445 280 L445 315 L310 315" stroke="#2b6cb0" stroke-width="2.5" fill="none" marker-end="url(#arrowBlue)"/>
+
+      <!-- ─ FEED PUMP ─ -->
+      <circle cx="290" cy="315" r="24" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+      <text x="290" y="312" text-anchor="middle" font-size="9" fill="white" font-weight="700">BOMBA</text>
+      <text x="290" y="323" text-anchor="middle" font-size="8" fill="#bee3f8">MCP</text>
+
+      <!-- Arrow pump → drum (return water) -->
+      <path d="M266 315 L240 315 L240 275" stroke="#2b6cb0" stroke-width="2.5" fill="none"/>
+      <path d="M240 275 L240 242 L222 242" stroke="#2b6cb0" stroke-width="2.5" fill="none" marker-end="url(#arrowBlue)"/>
+
+      <!-- Arrow drum → core (water recirculation, bottom) -->
+      <path d="M222 220 L190 220 L190 260 L160 260" stroke="#2b6cb0" stroke-width="2.5" fill="none" marker-end="url(#arrowBlue)"/>
+
+      <!-- Temperatures on cycle -->
+      <text x="95"  y="300" text-anchor="middle" font-size="8" fill="#553c9a" font-weight="700">① Calor nuclear</text>
+      <text x="282" y="290" text-anchor="middle" font-size="8" fill="#2b6cb0" font-weight="700">② Separación</text>
+      <text x="445" y="65"  text-anchor="middle" font-size="8" fill="#276749" font-weight="700">③ Expansión</text>
+      <text x="445" y="305" text-anchor="middle" font-size="8" fill="#718096" font-weight="700">④ Condensación</text>
+      <text x="290" y="348" text-anchor="middle" font-size="8" fill="#2b6cb0" font-weight="700">⑤ Compresión</text>
+
+      <!-- Efficiency note -->
+      <rect x="700" y="200" width="140" height="110" rx="10" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="770" y="220" text-anchor="middle" font-size="10" font-weight="700" fill="#2d3748">Ciclo de Rankine</text>
+      <text x="770" y="236" text-anchor="middle" font-size="8"  fill="#718096">Rendimiento térmico:</text>
+      <text x="770" y="250" text-anchor="middle" font-size="16" font-weight="800" fill="#276749">~33%</text>
+      <text x="770" y="268" text-anchor="middle" font-size="8"  fill="#718096">Potencia térmica: 3 200 MW</text>
+      <text x="770" y="281" text-anchor="middle" font-size="8"  fill="#718096">Potencia eléctrica: 1 000 MW</text>
+      <text x="770" y="294" text-anchor="middle" font-size="8"  fill="#a0aec0">Calor disipado: ~2 200 MW</text>
+    </svg>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     BARRAS DE CONTROL
+════════════════════════════════════════ -->
+<div id="control" class="section">
+  <div class="sec-label">Sistema de regulación</div>
+  <h2 class="sec-title">Barras de Control — El Talón de Aquiles del RBMK</h2>
+  <p class="sec-lead">Las 211 barras de control del RBMK tenían un diseño fundamentalmente defectuoso que fue uno de los factores directos del accidente de Chernóbil.</p>
+
+  <div class="diagram-wrap" style="margin-bottom:32px;">
+    <svg viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <linearGradient id="bgBar" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a365d"/>
+          <stop offset="30%" style="stop-color:#2b6cb0"/>
+          <stop offset="100%" style="stop-color:#1a365d"/>
+        </linearGradient>
+        <linearGradient id="bgGraph2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#4a5568"/>
+          <stop offset="100%" style="stop-color:#2d3748"/>
+        </linearGradient>
+        <linearGradient id="bgGraphite" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#d69e2e"/>
+          <stop offset="100%" style="stop-color:#ed8936"/>
+        </linearGradient>
+      </defs>
+
+      <rect width="860" height="280" fill="#f7f8fa"/>
+
+      <!-- ═ NORMAL POSITION ═ -->
+      <text x="130" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#276749">Posición Normal</text>
+      <text x="130" y="36" text-anchor="middle" font-size="9"  fill="#718096">(barra parcialmente insertada)</text>
+
+      <!-- Reactor core box -->
+      <rect x="60" y="48" width="140" height="200" rx="6" fill="url(#bgGraph2)"/>
+      <!-- Channels in core -->
+      <g opacity="0.6">
+        <rect x="72" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="90" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="108" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="126" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="144" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="162" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="180" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+      </g>
+
+      <!-- Control rod — normal (B4C part in core) -->
+      <rect x="112" y="28" width="16" height="120" rx="3" fill="url(#bgBar)"/>
+      <!-- Graphite displacer at bottom -->
+      <rect x="112" y="148" width="16" height="60" rx="3" fill="url(#bgGraphite)"/>
+      <!-- Label -->
+      <rect x="112" y="214" width="16" height="34" rx="2" fill="#a0aec0" opacity="0.5"/>
+      <text x="80"  y="148" font-size="7" fill="#bee3f8" font-weight="600">B₄C</text>
+      <text x="80"  y="160" font-size="7" fill="#bee3f8">(absorbente)</text>
+      <text x="172" y="172" font-size="7" fill="#d69e2e" font-weight="600">Grafito</text>
+      <text x="172" y="182" font-size="7" fill="#d69e2e">(displacedor)</text>
+      <!-- Arrows -->
+      <line x1="130" y1="145" x2="155" y2="145" stroke="#bee3f8" stroke-width="1"/>
+      <line x1="130" y1="172" x2="168" y2="172" stroke="#d69e2e" stroke-width="1"/>
+      <text x="130" y="268" text-anchor="middle" font-size="9" fill="#276749" font-weight="600">✓ Neutrones absorbidos</text>
+
+      <!-- ═ INSERTING POSITION ═ -->
+      <text x="370" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#e53e3e">Inserción de Emergencia (AZ-5)</text>
+      <text x="370" y="36" text-anchor="middle" font-size="9"  fill="#e53e3e" font-weight="600">⚠ El defecto fatal del RBMK</text>
+
+      <rect x="300" y="48" width="140" height="200" rx="6" fill="url(#bgGraph2)"/>
+      <g opacity="0.6">
+        <rect x="312" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="330" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="348" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="366" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="384" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="402" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+        <rect x="420" y="56" width="10" height="184" rx="2" fill="#ed8936"/>
+      </g>
+
+      <!-- Control rod fully withdrawn (before AZ-5) -->
+      <rect x="352" y="-8" width="16" height="40" rx="3" fill="url(#bgBar)" opacity="0.4"/>
+      <!-- Graphite displacer fills core when rod pulled out -->
+      <rect x="352" y="32"  width="16" height="100" rx="3" fill="url(#bgGraphite)" opacity="0.9"/>
+      <!-- Arrow showing rod going down -->
+      <line x1="360" y1="132" x2="360" y2="175" stroke="#e53e3e" stroke-width="2.5" stroke-dasharray="none" marker-end="url(#arrowRed)"/>
+      <!-- Graphite now entering from bottom -->
+      <rect x="352" y="132" width="16" height="60" rx="3" fill="url(#bgGraphite)" opacity="0.6"/>
+
+      <!-- POSITIVE SCRAM effect zone -->
+      <rect x="300" y="132" width="140" height="60" rx="0" fill="rgba(229,62,62,0.15)" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="370" y="158" text-anchor="middle" font-size="8" fill="#e53e3e" font-weight="700">↑ REACTIVIDAD POSITIVA</text>
+      <text x="370" y="170" text-anchor="middle" font-size="7" fill="#e53e3e">El grafito desplaza el agua (absorción)</text>
+      <text x="370" y="180" text-anchor="middle" font-size="7" fill="#e53e3e">antes de que el B₄C llegue abajo</text>
+
+      <text x="370" y="268" text-anchor="middle" font-size="9" fill="#e53e3e" font-weight="600">✗ Pico de potencia momentáneo (+3 s)</text>
+
+      <!-- ═ DIAGRAM: Positive void coefficient ═ -->
+      <rect x="520" y="48" width="310" height="200" rx="10" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="675" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="#2d3748">Coeficiente de Vacío Positivo</text>
+
+      <!-- Graph -->
+      <line x1="555" y1="220" x2="810" y2="220" stroke="#cbd5e0" stroke-width="1.5"/> <!-- X axis -->
+      <line x1="555" y1="80"  x2="555" y2="220" stroke="#cbd5e0" stroke-width="1.5"/> <!-- Y axis -->
+      <!-- X labels -->
+      <text x="555" y="233" text-anchor="middle" font-size="8" fill="#718096">0%</text>
+      <text x="680" y="233" text-anchor="middle" font-size="8" fill="#718096">50%</text>
+      <text x="805" y="233" text-anchor="middle" font-size="8" fill="#718096">100%</text>
+      <text x="680" y="246" text-anchor="middle" font-size="8" fill="#4a5568" font-weight="600">% de vacío (vapor) en refrigerante</text>
+      <!-- Y labels -->
+      <text x="548" y="222" text-anchor="end" font-size="8" fill="#718096">0</text>
+      <text x="548" y="165" text-anchor="end" font-size="8" fill="#e53e3e">+Δk</text>
+      <text x="548" y="108" text-anchor="end" font-size="8" fill="#e53e3e">+2Δk</text>
+      <!-- Positive void curve (bad) -->
+      <path d="M555 220 C600 218 640 210 680 190 C720 170 760 140 805 90" stroke="#e53e3e" stroke-width="2.5" fill="none"/>
+      <!-- Reference zero line -->
+      <line x1="555" y1="220" x2="805" y2="220" stroke="#276749" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="820" y="94"  font-size="8" fill="#e53e3e" font-weight="700">RBMK</text>
+      <text x="820" y="104" font-size="7" fill="#e53e3e">inestable</text>
+      <text x="820" y="222" font-size="8" fill="#276749">PWR/BWR</text>
+      <text x="820" y="232" font-size="7" fill="#276749">estable</text>
+
+      <text x="675" y="130" font-size="8" fill="#e53e3e">Más vapor = Menos absorción</text>
+      <text x="675" y="142" font-size="8" fill="#e53e3e">de neutrones por agua = MÁS POTENCIA</text>
+      <text x="675" y="154" font-size="8" fill="#e53e3e">⚠ Retroalimentación positiva</text>
+    </svg>
+  </div>
+
+  <div class="danger-box">
+    <div class="danger-icon">☢️</div>
+    <div>
+      <h3>El Efecto de Punta Positiva del Grafito (RBMK Scram)</h3>
+      <p
